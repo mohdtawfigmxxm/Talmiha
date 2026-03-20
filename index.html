@@ -276,6 +276,11 @@ button{padding:10px 16px;border:none;border-radius:14px;font-family:inherit;font
     <div class="clbl">اللاعبون</div>
     <div id="playersList"></div>
     <div id="startArea" class="hidden" style="margin-top:4px">
+      <!-- Bot selector (admin only) -->
+      <div id="botSelector" style="background:var(--s2);border:1px solid var(--bd);border-radius:14px;padding:12px;margin-bottom:10px">
+        <div style="font-size:.76rem;font-weight:700;color:var(--t2);margin-bottom:8px">🤖 إضافة بوتات للعب</div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px" id="botBtns"></div>
+      </div>
       <button class="bgrn bf" id="startBtn" onclick="startGame()">🚀 ابدأ اللعبة</button>
     </div>
     <button class="bgh bf" style="margin-top:8px;font-size:.78rem" id="leaveBtn" onclick="leaveRoom()">🚪 مغادرة الغرفة</button>
@@ -404,7 +409,9 @@ const PH = {
 
 const TLM_CATS = ['معلومات عامة','دينية','جغرافيا','رياضة','رياضيات','فيزياء','دول','منوعة'];
 const TLM_TIMES = [{l:'30 ثانية',v:30},{l:'60 ثانية',v:60},{l:'دقيقتان',v:120}];
-const TLM_ROUNDS = [{l:'2',v:2},{l:'3',v:3},{l:'4',v:4}];
+const TLM_ROUNDS = [{l:'1',v:1},{l:'2',v:2},{l:'3',v:3},{l:'4',v:4},{l:'5',v:5}];
+const BOT_NAMES = ['كليب','كلبون','كلباب','كلابا','أبوكلب','أبا كليبة'];
+const IS_BOT = n => BOT_NAMES.includes(n);
 
 // ══ BUILTIN QUESTIONS ══
 const TLM_BUILTIN = [
@@ -541,6 +548,13 @@ function renderLogin(){
 }
 
 function loginSelect(name){
+  // Check if valid 72h session exists for this name
+  try{
+    const sess=JSON.parse(localStorage.getItem('tlm_session')||'null');
+    if(sess && sess.name===name && sess.expires>Date.now()){
+      loginDone(name);return;
+    }
+  }catch(e){}
   _loginSelected = name;
   _pinBuf = '';
   document.querySelectorAll('.plBtn').forEach(b=>{
@@ -611,10 +625,22 @@ function loginDone(name){
       <div class="eyb">الرئيسية</div>
       <div class="sht">أهلاً <em>${san(name)}</em> 👋</div>
       <button class="bpurp bf" onclick="navLobby()" style="font-size:1rem;padding:16px;margin-bottom:10px">🎮 انضم للعبة</button>
-      <button class="bcg bf" onclick="navStats()">📊 الإحصاءات</button>
+      <button class="bcg bf" onclick="navStats()" style="margin-bottom:10px">📊 الإحصاءات</button>
+      <button class="bgh bf" onclick="logout()" style="font-size:.82rem">🚪 تسجيل خروج</button>
       <div id="onlineCount" style="text-align:center;font-size:.74rem;color:var(--t3);padding:8px;background:var(--s2);border-radius:10px;margin-top:10px">
         <span class="online-dot"></span> جاري الاتصال...
       </div>`;
+  }else{
+    // Add logout to admin home too
+    const homeCard=$('sHome');
+    if(homeCard){
+      const logoutBtn=document.createElement('button');
+      logoutBtn.className='bgh bf';
+      logoutBtn.style='font-size:.82rem;margin-top:8px';
+      logoutBtn.textContent='🚪 تسجيل خروج';
+      logoutBtn.onclick=logout;
+      homeCard.appendChild(logoutBtn);
+    }
   }
 
   // Register presence using safe key
@@ -631,7 +657,19 @@ function loginDone(name){
   listenRoom();
 }
 
-// ══ NAVIGATION ══
+function logout(){
+  // Clear session
+  try{localStorage.removeItem('tlm_session');}catch(e){}
+  // Remove presence
+  if(CU.name)DB.ref(`tlm_presence/${fbKey(CU.name)}`).remove();
+  // Stop room listener
+  if(_roomRef)_roomRef.off();
+  _room=null;CU={name:'',isAdmin:false};
+  // Hide app, show splash
+  h($('topBar'));h($('nav'));h($('app'));
+  s($('splash'));
+  renderLogin();
+}
 const ALL_PAGES=['sHome','sLobby','sGame','sStats','sSettings'];
 function hideAll(){ALL_PAGES.forEach(id=>{const e=$(id);if(e)e.classList.add('hidden');});}
 function setNav(id){['nhome','nlobby','nstats','nset'].forEach(n=>{const b=$(n);if(b)b.classList.toggle('on',n===id);});}
@@ -765,6 +803,15 @@ function renderLobby(){
     const roundEl=$('roundBtns');
     if(roundEl)roundEl.innerHTML=TLM_ROUNDS.map(r=>`<button class="wfb${settings.rounds===r.v?' on':''}" onclick="setSetting('rounds',${r.v})">${r.l} جولات</button>`).join('');
     s($('startArea'));
+    // Bot buttons
+    const botEl=$('botBtns');
+    if(botEl){
+      const activeBots=_room.players?Object.values(_room.players).filter(p=>IS_BOT(p.name)).map(p=>p.name):[];
+      botEl.innerHTML=BOT_NAMES.map(bn=>{
+        const isActive=activeBots.includes(bn);
+        return`<button class="wfb${isActive?' on':''}" onclick="toggleBot('${bn.replace(/'/g,"\\'")}')">🤖 ${san(bn)}</button>`;
+      }).join('');
+    }
     const pCount=_room.players?Object.keys(_room.players).length:0;
     const startBtn=$('startBtn');
     if(startBtn)startBtn.disabled=pCount<2;
@@ -790,6 +837,18 @@ function renderLobby(){
   }
 }
 
+function toggleBot(botName){
+  if(!CU.isAdmin||!_room)return;
+  const pk=fbKey(botName);
+  if(_room.players&&_room.players[pk]){
+    DB.ref(`tlm_room/players/${pk}`).remove();
+    toast(`تم إزالة ${botName}`,'ok');
+  }else{
+    DB.ref(`tlm_room/players/${pk}`).set({name:botName,ready:true,score:0,joinedAt:Date.now(),isBot:true});
+    toast(`تم إضافة ${botName} 🤖`,'ok');
+  }
+}
+
 function toggleCat(c){
   if(!CU.isAdmin||!_room)return;
   const cats=[...(_room.settings&&_room.settings.cats?_room.settings.cats:[])];
@@ -811,12 +870,13 @@ function startGame(){
   const players=_room.players?Object.values(_room.players).map(p=>p.name):[];
   if(players.length<2){toast('يجب لاعبان على الأقل','err');return;}
   const shuffled=shuf(players);
-  // Initialize scores
   const scores={};shuffled.forEach(p=>scores[p]=0);
   const settings=_room.settings||{cats:[],time:60,rounds:2};
   const totalTurns=shuffled.length*settings.rounds;
-  // Pick first question
   const q=pickQuestion(settings.cats);
+  // Only admin plays — if only bots + admin, bots play fully; otherwise bots just add answers
+  const humanPlayers=players.filter(p=>!IS_BOT(p));
+  const onlyAdminWithBots=humanPlayers.length===1&&humanPlayers[0]===CU.name;
   DB.ref('tlm_room').update({
     phase:'pick_hint',
     players:_room.players,
@@ -829,10 +889,52 @@ function startGame(){
     answers:{},
     votes:{},
     decoys:{},
-    settings
+    settings,
+    onlyAdminWithBots
   });
 }
 
+function endAnswering(){
+  clearInterval(_timer);
+  // Have bots submit answers before moving to voting
+  if(CU.isAdmin&&_room){
+    const q=_room.currentQ;
+    const turn=_room.currentTurn||0;
+    const order=_room.turnOrder||[];
+    const turnPlayer=order[turn%order.length];
+    const existingAnswers=_room.answers||{};
+    const updates={};
+    // Check if there are duplicate human answers — add bot answer if needed
+    const humanAnswers=Object.values(existingAnswers).map(a=>a.answer||'').filter(Boolean);
+    const uniqueAnswers=new Set(humanAnswers.map(a=>a.toLowerCase().replace(/\s/g,'')));
+    // Add bot answers for bots not yet answered
+    order.filter(p=>IS_BOT(p)&&p!==turnPlayer).forEach(bot=>{
+      const pk=fbKey(bot);
+      if(existingAnswers[pk])return;// already answered
+      const botAns=pickBotAnswer(q,Object.values(existingAnswers));
+      updates[`tlm_room/answers/${pk}`]={answer:botAns,correct:false,playerName:bot,isBot:true};
+    });
+    if(Object.keys(updates).length>0){
+      DB.ref().update(updates).then(()=>DB.ref('tlm_room').update({phase:'voting'}));
+    }else{
+      DB.ref('tlm_room').update({phase:'voting'});
+    }
+  }
+}
+
+function pickBotAnswer(q,existingAnswers){
+  // Try botAnswers from question first
+  const botPool=q.botAnswers&&q.botAnswers.length?q.botAnswers:null;
+  const usedAnswers=new Set(existingAnswers.map(a=>(a.answer||'').toLowerCase().replace(/\s/g,'')));
+  usedAnswers.add(q.term.toLowerCase().replace(/\s/g,''));
+  if(botPool){
+    const unused=botPool.filter(a=>!usedAnswers.has(a.toLowerCase().replace(/\s/g,'')));
+    if(unused.length)return unused[Math.floor(Math.random()*unused.length)];
+    return botPool[Math.floor(Math.random()*botPool.length)];
+  }
+  // Fallback: pick a random hint as answer
+  return q.hints[Math.floor(Math.random()*q.hints.length)].slice(0,20)+'...';
+}
 function pickQuestion(cats){
   const pool=allQuestions().filter(q=>!cats||cats.length===0||cats.includes(q.cat));
   const q=pool[Math.floor(Math.random()*pool.length)];
@@ -1072,61 +1174,72 @@ function revealResults(){
   const answers=_room.answers||{};
   const votes=_room.votes||{};
 
-  // Count correct votes
-  let correctVoters=[];
-  let deceivedBy={};// owner -> list of voters they deceived
-  Object.entries(votes).forEach(([voter,voteData])=>{
-    if(voteData.owner==='__real__'){
-      correctVoters.push(voter);
-    }else{
-      if(!deceivedBy[voteData.owner])deceivedBy[voteData.owner]=[];
-      deceivedBy[voteData.owner].push(voter);
-    }
-  });
-
-  // Calculate round points
-  const roundPts={};
-  order.forEach(p=>roundPts[p]=0);
-
-  // Other players: 2pts for correct answer, 1pt per person deceived
-  order.filter(p=>p!==turnPlayer).forEach(p=>{
-    if(correctVoters.includes(p))roundPts[p]+=2;
-    if(deceivedBy[p])roundPts[p]+=deceivedBy[p].length;
-    // Also: if player correctly guessed but chose to write decoy, they already got +2
-  });
-
-  // Turn player: based on how many guessed correctly
-  const nc=correctVoters.length;
-  const votersCount=order.filter(p=>p!==turnPlayer).length;
-  if(nc===0)roundPts[turnPlayer]=4;
-  else if(nc===1)roundPts[turnPlayer]=3;
-  else if(nc<=2)roundPts[turnPlayer]=1;
-  else roundPts[turnPlayer]=0;
-
-  // Update cumulative scores
-  const newScores={..._room.scores||{}};
-  order.forEach(p=>{newScores[p]=(newScores[p]||0)+(roundPts[p]||0);});
-
-  // Build result opts
-  const resultOpts=[];
-  resultOpts.push({text:q.term,isReal:true,owner:'__real__',voters:correctVoters});
-  Object.entries(answers).forEach(([player,data])=>{
-    if(player===turnPlayer)return;
+  // Build opts from answers using playerName
+  const opts=[];
+  opts.push({text:q.term,isReal:true,owner:'__real__'});
+  Object.values(answers).forEach(data=>{
+    if(!data.playerName||data.playerName===turnPlayer)return;
     const displayAns=data.decoy||data.answer;
-    if(displayAns&&displayAns!==q.term){
-      const deceived=deceivedBy[player]||[];
-      resultOpts.push({text:displayAns,isReal:false,owner:player,voters:deceived});
-    }
+    if(displayAns&&displayAns.toLowerCase().replace(/\s/g,'')!==q.term.toLowerCase().replace(/\s/g,''))
+      opts.push({text:displayAns,isReal:false,owner:data.playerName});
+  });
+  const shuffledOpts=shuf([...opts]);
+
+  // Add bot votes if onlyAdminWithBots or bots present
+  const botUpdates={};
+  order.filter(p=>IS_BOT(p)&&p!==turnPlayer).forEach(bot=>{
+    const pk=fbKey(bot);
+    if(votes[pk])return;
+    // Bot votes randomly — slightly biased toward real answer
+    const voteIdx=Math.random()<0.35?0:Math.floor(Math.random()*shuffledOpts.length);
+    const chosen=shuffledOpts[Math.min(voteIdx,shuffledOpts.length-1)];
+    botUpdates[`tlm_room/votes/${pk}`]={optIdx:voteIdx,owner:chosen?.owner||'__real__',voterName:bot,isBot:true};
   });
 
-  DB.ref('tlm_room').update({
-    phase:'round_result',
-    roundPts,
-    scores:newScores,
-    resultOpts,
-    correctVoters,
-    correctCount:nc
-  });
+  // Apply bot votes synchronously then compute results
+  const applyAndCompute=(allVotes)=>{
+    let correctVoters=[];
+    let deceivedBy={};
+    Object.values(allVotes).forEach(vd=>{
+      const voterName=vd.voterName||vd.owner;
+      if(vd.owner==='__real__'){correctVoters.push(voterName);}
+      else{if(!deceivedBy[vd.owner])deceivedBy[vd.owner]=[];deceivedBy[vd.owner].push(voterName);}
+    });
+
+    const roundPts={};order.forEach(p=>roundPts[p]=0);
+    order.filter(p=>p!==turnPlayer).forEach(p=>{
+      if(correctVoters.includes(p))roundPts[p]+=2;
+      if(deceivedBy[p])roundPts[p]+=deceivedBy[p].length;
+    });
+    const nc=correctVoters.length;
+    if(nc===0)roundPts[turnPlayer]=4;
+    else if(nc===1)roundPts[turnPlayer]=3;
+    else if(nc<=2)roundPts[turnPlayer]=1;
+    else roundPts[turnPlayer]=0;
+
+    const newScores={..._room.scores||{}};
+    order.forEach(p=>{newScores[p]=(newScores[p]||0)+(roundPts[p]||0);});
+
+    const resultOpts=shuffledOpts.map(opt=>({
+      ...opt,
+      voters:opt.isReal?correctVoters.map(v=>({name:v}))
+        :(deceivedBy[opt.owner]||[]).map(v=>({name:v}))
+    }));
+
+    DB.ref('tlm_room').update({
+      phase:'round_result',
+      roundPts,scores:newScores,
+      resultOpts,correctVoters,correctCount:nc
+    });
+  };
+
+  if(Object.keys(botUpdates).length>0){
+    DB.ref().update(botUpdates).then(()=>{
+      DB.ref('tlm_room/votes').once('value').then(s=>{applyAndCompute(s.val()||{});});
+    });
+  }else{
+    applyAndCompute(votes);
+  }
 }
 
 function renderRoundResult(){
@@ -1143,8 +1256,9 @@ function renderRoundResult(){
   const optsHtml=opts.map(opt=>{
     const cls=opt.isReal?'correct':opt.voters&&opt.voters.length?'decoy':'nobody';
     const ownerLabel=opt.isReal?'✅ الإجابة الصحيحة':(`🎭 تضليل ${san(opt.owner)}`);
-    const votersHtml=opt.voters&&opt.voters.length
-      ?`<div class="vc-voters">${opt.voters.map(v=>`<div class="voter-chip">${pImg(v,18)} ${san(v)}</div>`).join('')}</div>`
+    const voters=opt.voters||[];
+    const votersHtml=voters.length
+      ?`<div class="vc-voters">${voters.map(v=>{const vname=typeof v==='object'?v.name:v;return`<div class="voter-chip">${pImg(vname,18)} ${san(vname)}</div>`;}).join('')}</div>`
       :`<div style="font-size:.7rem;color:var(--t3);margin-top:4px">لم يختره أحد</div>`;
     return`<div class="result-card ${cls}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
@@ -1155,33 +1269,29 @@ function renderRoundResult(){
     </div>`;
   }).join('');
 
-  const ptsHtml=order.map(p=>{
+  const sortedOrder=[...order].sort((a,b)=>(scores[b]||0)-(scores[a]||0));
+  const ptsHtml=sortedOrder.map(p=>{
     const delta=roundPts[p]||0;
     return`<div class="score-row">
       ${pImg(p,32)}
-      <span style="flex:1;font-size:.86rem;font-weight:700">${san(p)}</span>
-      <span class="score-delta">+${delta}</span>
+      <span style="flex:1;font-size:.86rem;font-weight:700">${san(p)}${IS_BOT(p)?'<span style="font-size:.6rem;color:var(--t3);margin-right:4px"> 🤖</span>':''}</span>
+      <span class="score-delta" style="color:${delta>0?'var(--grn)':delta<0?'var(--red)':'var(--t3)'}">+${delta}</span>
       <span class="score-pts">${scores[p]||0}</span>
     </div>`;
-  }).sort((a,b)=>{
-    const sa=parseInt(a.match(/score-pts">(.*?)</)?.[1]||0);
-    const sb=parseInt(b.match(/score-pts">(.*?)</)?.[1]||0);
-    return sb-sa;
   }).join('');
 
   const isLastTurn=(turn+1)>=(_room.totalTurns||order.length);
   return`<div style="animation:fup .28s ease both">
     <div class="term-box" style="font-size:1.4rem">${san(q.term)}<div class="term-cat">${san(q.cat)}</div></div>
     <div style="text-align:center;font-size:.82rem;color:var(--t2);margin-bottom:14px">
-      الإجابة الصحيحة عرفها <strong style="color:var(--grn)">${nc}</strong> شخص
-      — ${san(turnPlayer)} يحصل على <strong style="color:var(--purp)">${roundPts[turnPlayer]||0}</strong> نقطة
+      الإجابة الصحيحة عرفها <strong style="color:var(--grn)">${nc}</strong> — ${san(turnPlayer)} حصل على <strong style="color:var(--purp)">${roundPts[turnPlayer]||0}</strong> نقطة
     </div>
     ${optsHtml}
     <div class="clbl" style="margin-top:14px">الترتيب</div>
     ${ptsHtml}
     ${CU.isAdmin?`<div style="display:flex;gap:8px;margin-top:14px">
       ${!isLastTurn?`<button class="bcg bf" onclick="nextTurn()">▶️ الدور التالي</button>`:''}
-      <button class="${isLastTurn?'bpurp':'br'} bf" onclick="${isLastTurn?'finishGame()':'finishGame()'}">${isLastTurn?'🏆 النتيجة النهائية':'⏩ إنهاء اللعبة'}</button>
+      <button class="${isLastTurn?'bpurp':'br'} bf" onclick="finishGame()">${isLastTurn?'🏆 النتيجة النهائية':'⏩ إنهاء اللعبة'}</button>
     </div>`:'<div class="wait-box" style="margin-top:14px"><div class="wi">⏳</div><div class="wt">في انتظار المضيف...</div></div>'}
   </div>`;
 }
