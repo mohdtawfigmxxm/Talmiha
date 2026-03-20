@@ -593,6 +593,22 @@ function loginDone(name){
   const av=ph?`<img src="${ph}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid var(--bd)">`:`<div class="uav">${name[0]}</div>`;
   $('userBadge').innerHTML=`${av}<span style="font-weight:700">${san(name)}</span>${CU.isAdmin?'<span class="onbadge">ADMIN</span>':''}`;
   $('welcomeName').textContent=name;
+
+  // Hide settings nav for non-admin
+  if(!CU.isAdmin){
+    const nset=$('nset');if(nset)nset.style.display='none';
+    // Simplify home buttons for non-admin
+    const homeCard=$('sHome');
+    if(homeCard) homeCard.innerHTML=`
+      <div class="eyb">الرئيسية</div>
+      <div class="sht">أهلاً <em>${san(name)}</em> 👋</div>
+      <button class="bpurp bf" onclick="navLobby()" style="font-size:1rem;padding:16px;margin-bottom:10px">🎮 انضم للعبة</button>
+      <button class="bcg bf" onclick="navStats()">📊 الإحصاءات</button>
+      <div id="onlineCount" style="text-align:center;font-size:.74rem;color:var(--t3);padding:8px;background:var(--s2);border-radius:10px;margin-top:10px">
+        <span class="online-dot"></span> جاري الاتصال...
+      </div>`;
+  }
+
   // Register presence
   DB.ref(`tlm_presence/${name}`).set({online:true,ts:Date.now()});
   DB.ref(`tlm_presence/${name}`).onDisconnect().remove();
@@ -603,7 +619,6 @@ function loginDone(name){
     if(el)el.innerHTML=`<span class="online-dot"></span> ${cnt} متصل الآن`;
   });
   navHome();
-  // Check if there's an active room
   listenRoom();
 }
 
@@ -615,6 +630,7 @@ function navHome(){hideAll();s($('sHome'));setNav('nhome');}
 function navLobby(){hideAll();s($('sLobby'));setNav('nlobby');renderLobby();}
 function navStats(){hideAll();s($('sStats'));setNav('nstats');renderStats();}
 function navSettings(){
+  if(!CU.isAdmin){toast('الإعدادات للأدمن فقط','err');return;}
   hideAll();s($('sSettings'));setNav('nset');
   renderPhotos();
   renderPinResetSection();
@@ -630,15 +646,31 @@ let _roomListener = null;
 function listenRoom(){
   _roomRef = DB.ref('tlm_room');
   _roomRef.on('value', snap=>{
+    const wasNull = !_room;
     _room = snap.exists() ? snap.val() : null;
-    // If we're on the lobby page, re-render
-    const lobby=$('sLobby');
-    if(lobby&&!lobby.classList.contains('hidden'))renderLobby();
-    // If game is active, render game
-    if(_room&&_room.phase&&_room.phase!=='lobby'){
-      const game=$('sGame');
-      if(!game||game.classList.contains('hidden'))navGame();
+
+    // Game is active — go to game screen
+    if(_room && _room.phase && _room.phase !== 'lobby'){
+      navGame();
       renderGame();
+      return;
+    }
+
+    // Room just appeared and non-admin is on home → go to lobby
+    if(_room && _room.phase === 'lobby' && !CU.isAdmin){
+      const onHome = $('sHome') && !$('sHome').classList.contains('hidden');
+      if(onHome || wasNull) navLobby();
+    }
+
+    // Re-render lobby if visible
+    const lobby=$('sLobby');
+    if(lobby && !lobby.classList.contains('hidden')) renderLobby();
+
+    // Room disappeared → go home
+    if(!_room){
+      const onGame=$('sGame')&&!$('sGame').classList.contains('hidden');
+      const onLobby=$('sLobby')&&!$('sLobby').classList.contains('hidden');
+      if(onGame||onLobby){navHome();toast('انتهت الغرفة','ok');}
     }
   });
 }
@@ -669,6 +701,12 @@ function leaveRoom(){
   navHome();
 }
 
+function kickPlayer(name){
+  if(!CU.isAdmin)return;
+  DB.ref(`tlm_room/players/${name}`).remove();
+  toast(`تم إخراج ${name}`,'ok');
+}
+
 function joinRoom(){
   if(!_room){toast('لا توجد غرفة نشطة','err');return;}
   if(_room.players&&_room.players[CU.name]){toast('أنت في الغرفة بالفعل');return;}
@@ -678,53 +716,64 @@ function joinRoom(){
 
 function renderLobby(){
   if(!_room||!_room.phase){
-    s($('noRoom'));h($('activeRoom'));
-    if(CU.isAdmin){const btn=$('noRoom').querySelector('button');if(btn)btn.style.display='';}
-    else{const noR=$('noRoom');if(noR)noR.innerHTML=`<div style="background:var(--s2);border-radius:16px;padding:20px;text-align:center"><div style="font-size:1.5rem;margin-bottom:8px">⏳</div><div style="font-size:.88rem;color:var(--t2);font-weight:600">لا توجد غرفة نشطة حالياً</div><div style="font-size:.76rem;color:var(--t3);margin-top:6px">انتظر حتى ينشئ المشرف غرفة</div></div>`;}
+    h($('activeRoom'));s($('noRoom'));
+    if(CU.isAdmin){
+      $('noRoom').innerHTML=`<div style="background:var(--s2);border-radius:16px;padding:16px;margin-bottom:12px;text-align:center">
+        <div style="font-size:1.5rem;margin-bottom:8px">🎮</div>
+        <div style="font-size:.88rem;color:var(--t2);font-weight:600;margin-bottom:14px">لا توجد غرفة نشطة</div>
+        <button class="bpurp bf" onclick="createRoom()">✨ إنشاء غرفة جديدة</button>
+      </div>`;
+    }else{
+      $('noRoom').innerHTML=`<div style="background:var(--s2);border-radius:16px;padding:24px;text-align:center">
+        <div style="font-size:2rem;margin-bottom:10px">⏳</div>
+        <div style="font-size:.9rem;color:var(--t2);font-weight:700">لا توجد غرفة نشطة</div>
+        <div style="font-size:.76rem;color:var(--t3);margin-top:6px">انتظر حتى ينشئ الأدمن غرفة</div>
+        <div style="font-size:.72rem;color:var(--purp);margin-top:12px;font-weight:700">الصفحة تتحدث تلقائياً 🔄</div>
+      </div>`;
+    }
     return;
   }
   if(_room.phase!=='lobby'){navGame();return;}
   h($('noRoom'));s($('activeRoom'));
 
+  // Auto-join for non-admin
+  if(!CU.isAdmin && _room.players && !_room.players[CU.name]){
+    DB.ref(`tlm_room/players/${CU.name}`).set({name:CU.name,ready:true,score:0,joinedAt:Date.now()});
+  }
+
   // Settings (admin only)
   if(CU.isAdmin){
     s($('roomSettings'));
     const settings=_room.settings||{cats:[],time:60,rounds:2};
-    // Cats
     const catEl=$('catBtns');
     if(catEl)catEl.innerHTML=TLM_CATS.map(c=>`<button class="wfb${!settings.cats.length||settings.cats.includes(c)?' on':''}" onclick="toggleCat('${c}')">${c}</button>`).join('');
-    // Times
     const timeEl=$('timeBtns');
     if(timeEl)timeEl.innerHTML=TLM_TIMES.map(t=>`<button class="wfb${settings.time===t.v?' on':''}" onclick="setSetting('time',${t.v})">${t.l}</button>`).join('');
-    // Rounds
     const roundEl=$('roundBtns');
     if(roundEl)roundEl.innerHTML=TLM_ROUNDS.map(r=>`<button class="wfb${settings.rounds===r.v?' on':''}" onclick="setSetting('rounds',${r.v})">${r.l} جولات</button>`).join('');
     s($('startArea'));
-    const startBtn=$('startBtn');
     const pCount=_room.players?Object.keys(_room.players).length:0;
+    const startBtn=$('startBtn');
     if(startBtn)startBtn.disabled=pCount<2;
   }else{
-    h($('roomSettings'));
-    h($('startArea'));
-    // Join button if not in room
-    const inRoom=_room.players&&_room.players[CU.name];
+    h($('roomSettings'));h($('startArea'));
     const leaveBtn=$('leaveBtn');
-    if(leaveBtn)leaveBtn.textContent=inRoom?'🚪 مغادرة الغرفة':'✋ انضم للغرفة';
-    if(!inRoom&&leaveBtn)leaveBtn.onclick=joinRoom;
-    else if(leaveBtn)leaveBtn.onclick=leaveRoom;
+    if(leaveBtn){leaveBtn.textContent='🚪 مغادرة الغرفة';leaveBtn.onclick=leaveRoom;}
   }
 
   // Players list
   const pl=$('playersList');
   if(pl){
     const players=_room.players?Object.values(_room.players):[];
-    pl.innerHTML=players.length?players.map(p=>`
-      <div class="plRow">
-        ${pImg(p.name,36)}
-        <span class="plName">${san(p.name)}</span>
-        <span class="plStatus ${p.name===_room.host?'host':'ready'}">${p.name===_room.host?'مضيف':'جاهز'}</span>
-      </div>`).join('')
-    :'<div style="font-size:.82rem;color:var(--t3);text-align:center;padding:10px">لا يوجد لاعبون بعد</div>';
+    pl.innerHTML=players.length
+      ?players.sort((a,b)=>a.joinedAt-b.joinedAt).map(p=>`
+        <div class="plRow">
+          ${pImg(p.name,36)}
+          <span class="plName">${san(p.name)}</span>
+          <span class="plStatus ${p.name===_room.host?'host':'ready'}">${p.name===_room.host?'مضيف 👑':'جاهز ✓'}</span>
+          ${CU.isAdmin&&p.name!==CU.name?`<button onclick="kickPlayer('${p.name.replace(/'/g,"\\'")}');" style="padding:3px 8px;font-size:.65rem;background:#fee2e2;border:none;border-radius:8px;color:#b91c1c;cursor:pointer;font-family:inherit">إخراج</button>`:''}
+        </div>`).join('')
+      :'<div style="font-size:.82rem;color:var(--t3);text-align:center;padding:10px">لا يوجد لاعبون بعد</div>';
   }
 }
 
