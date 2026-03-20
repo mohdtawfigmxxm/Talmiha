@@ -547,7 +547,7 @@ function loginSelect(name){
     const sp=b.querySelector('span');
     b.classList.toggle('sel', sp&&sp.textContent===name);
   });
-  DB.ref(`tlm_users/${name}/pin`).once('value').then(snap=>{
+  DB.ref(`tlm_users/${fbKey(name)}/pin`).once('value').then(snap=>{
     if(snap.exists()){
       _pinMode='verify';
       $('pinTitle').textContent=`مرحباً ${name}! أدخل رقمك السري`;
@@ -572,20 +572,29 @@ function updatePinDots(){
 }
 function pinOk(){
   if(_pinBuf.length<4){toast('أدخل 4 أرقام','err');return;}
+  const key=fbKey(_loginSelected);
   if(_pinMode==='set'){
-    DB.ref(`tlm_users/${_loginSelected}`).set({pin:_pinBuf,name:_loginSelected}).then(()=>loginDone(_loginSelected));
+    DB.ref(`tlm_users/${key}`).set({pin:_pinBuf,name:_loginSelected}).then(()=>loginDone(_loginSelected));
   }else{
-    DB.ref(`tlm_users/${_loginSelected}/pin`).once('value').then(snap=>{
+    DB.ref(`tlm_users/${key}/pin`).once('value').then(snap=>{
       if(snap.val()===_pinBuf){loginDone(_loginSelected);}
       else{_pinBuf='';updatePinDots();toast('رقم خاطئ ❌','err');$('pinTitle').textContent='حاول مرة أخرى';}
     });
   }
 }
 
+// ══ SAFE KEY for Firebase (Arabic names not safe as keys) ══
+function fbKey(name){
+  try{return btoa(unescape(encodeURIComponent(name))).replace(/[+/=]/g,'_');}
+  catch(e){return name.split('').map(c=>c.charCodeAt(0).toString(16)).join('');}
+}
+
 function loginDone(name){
   CU.name = name;
   CU.isAdmin = (name === ADMIN);
-  ls('tlm_user', name);
+  // Save session with 72h expiry
+  ls('tlm_session', JSON.stringify({name, expires: Date.now() + 72*60*60*1000}));
+
   h($('splash'));
   s($('topBar'));s($('nav'));s($('app'));
   // User badge
@@ -597,7 +606,6 @@ function loginDone(name){
   // Hide settings nav for non-admin
   if(!CU.isAdmin){
     const nset=$('nset');if(nset)nset.style.display='none';
-    // Simplify home buttons for non-admin
     const homeCard=$('sHome');
     if(homeCard) homeCard.innerHTML=`
       <div class="eyb">الرئيسية</div>
@@ -609,9 +617,10 @@ function loginDone(name){
       </div>`;
   }
 
-  // Register presence
-  DB.ref(`tlm_presence/${name}`).set({online:true,ts:Date.now()});
-  DB.ref(`tlm_presence/${name}`).onDisconnect().remove();
+  // Register presence using safe key
+  const pk = fbKey(name);
+  DB.ref(`tlm_presence/${pk}`).set({online:true, name, ts:Date.now()});
+  DB.ref(`tlm_presence/${pk}`).onDisconnect().remove();
   // Listen presence count
   DB.ref('tlm_presence').on('value',snap=>{
     const cnt=snap.numChildren();
@@ -677,15 +686,15 @@ function listenRoom(){
 
 function createRoom(){
   if(!CU.isAdmin){toast('فقط المشرف يمكنه إنشاء غرفة','err');return;}
+  const pk=fbKey(CU.name);
   const room = {
     host: CU.name,
     phase: 'lobby',
-    players: {[CU.name]: {name:CU.name, ready:true, score:0, joinedAt:Date.now()}},
+    players: {[pk]: {name:CU.name, ready:true, score:0, joinedAt:Date.now()}},
     settings: {cats:[], time:60, rounds:2},
     createdAt: Date.now()
   };
-  DB.ref('tlm_room').set(room);
-  toast('تم إنشاء الغرفة ✓','ok');
+  DB.ref('tlm_room').set(room).then(()=>toast('تم إنشاء الغرفة ✓','ok'));
 }
 
 function leaveRoom(){
@@ -695,7 +704,7 @@ function leaveRoom(){
     DB.ref('tlm_room').remove();
     toast('تم حذف الغرفة','ok');
   }else{
-    DB.ref(`tlm_room/players/${CU.name}`).remove();
+    DB.ref(`tlm_room/players/${fbKey(CU.name)}`).remove();
     toast('غادرت الغرفة','ok');
   }
   navHome();
@@ -703,14 +712,15 @@ function leaveRoom(){
 
 function kickPlayer(name){
   if(!CU.isAdmin)return;
-  DB.ref(`tlm_room/players/${name}`).remove();
+  DB.ref(`tlm_room/players/${fbKey(name)}`).remove();
   toast(`تم إخراج ${name}`,'ok');
 }
 
 function joinRoom(){
   if(!_room){toast('لا توجد غرفة نشطة','err');return;}
-  if(_room.players&&_room.players[CU.name]){toast('أنت في الغرفة بالفعل');return;}
-  DB.ref(`tlm_room/players/${CU.name}`).set({name:CU.name,ready:true,score:0,joinedAt:Date.now()});
+  const pk=fbKey(CU.name);
+  if(_room.players&&_room.players[pk]){toast('أنت في الغرفة بالفعل');return;}
+  DB.ref(`tlm_room/players/${pk}`).set({name:CU.name,ready:true,score:0,joinedAt:Date.now()});
   toast('انضممت للغرفة ✓','ok');
 }
 
@@ -737,8 +747,11 @@ function renderLobby(){
   h($('noRoom'));s($('activeRoom'));
 
   // Auto-join for non-admin
-  if(!CU.isAdmin && _room.players && !_room.players[CU.name]){
-    DB.ref(`tlm_room/players/${CU.name}`).set({name:CU.name,ready:true,score:0,joinedAt:Date.now()});
+  if(!CU.isAdmin){
+    const pk=fbKey(CU.name);
+    if(_room.players && !_room.players[pk]){
+      DB.ref(`tlm_room/players/${pk}`).set({name:CU.name,ready:true,score:0,joinedAt:Date.now()});
+    }
   }
 
   // Settings (admin only)
@@ -959,18 +972,13 @@ function submitAnswer(){
   const raw=inp.value.trim();
   const q=_room.currentQ;
   const correct=raw.replace(/\s/g,'').toLowerCase()===q.term.replace(/\s/g,'').toLowerCase();
-  // Save answer — if correct, player writes a decoy instead
+  const pk=fbKey(CU.name);
   if(correct){
-    // Mark as correct, ask for decoy
-    DB.ref(`tlm_room/answers/${CU.name}`).set({answer:raw,correct:true,needsDecoy:true});
+    DB.ref(`tlm_room/answers/${pk}`).set({answer:raw,correct:true,needsDecoy:true,playerName:CU.name});
     toast('✅ إجابة صحيحة! الآن اكتب إجابة تضليلية','ok',3500);
-    // Re-render to show decoy input
-    if($('ansInp'))$('ansInp').value='';
-    if($('gameContent')){
-      $('gameContent').innerHTML=renderDecoyInput(raw);
-    }
+    if($('gameContent')){$('gameContent').innerHTML=renderDecoyInput(raw);}
   }else{
-    DB.ref(`tlm_room/answers/${CU.name}`).set({answer:raw,correct:false});
+    DB.ref(`tlm_room/answers/${pk}`).set({answer:raw,correct:false,playerName:CU.name});
     if($('gameContent'))renderGame();
   }
 }
@@ -992,7 +1000,7 @@ function renderDecoyInput(correctAns){
 function submitDecoy(){
   const inp=$('decoyInp');if(!inp||!inp.value.trim())return;
   const decoy=inp.value.trim();
-  DB.ref(`tlm_room/answers/${CU.name}`).update({decoy});
+  DB.ref(`tlm_room/answers/${fbKey(CU.name)}`).update({decoy,playerName:CU.name});
   if($('gameContent'))renderGame();
 }
 
@@ -1008,18 +1016,17 @@ function renderVoting(){
   const order=_room.turnOrder||[];
   const turnPlayer=order[turn%order.length];
   const isMyTurn=turnPlayer===CU.name;
-  const myVote=_room.votes&&_room.votes[CU.name]!=null;
+  const pk=fbKey(CU.name);
+  const myVote=_room.votes&&_room.votes[pk]!=null;
   const answers=_room.answers||{};
 
-  // Build options: correct answer + all decoys (wrong answers or explicit decoys from correct guessers)
+  // Build options from answers using playerName field
   const opts=[];
-  // Correct answer always included
   opts.push({text:q.term,isReal:true,owner:'__real__'});
-  // Each non-turn player's answer or decoy
-  Object.entries(answers).forEach(([player,data])=>{
-    if(player===turnPlayer)return;
+  Object.values(answers).forEach(data=>{
+    if(data.playerName===turnPlayer)return;
     const displayAns=data.decoy||data.answer;
-    if(displayAns&&displayAns!==q.term)opts.push({text:displayAns,isReal:false,owner:player});
+    if(displayAns&&displayAns!==q.term)opts.push({text:displayAns,isReal:false,owner:data.playerName});
   });
   const shuffledOpts=shuf([...opts]);
 
@@ -1040,7 +1047,7 @@ function renderVoting(){
       ${isMyTurn?`${voteCount}/${votersNeeded} صوّتوا — انتظر...`:'اختر الإجابة الصحيحة'}
     </div>
     ${!isMyTurn&&!myVote?shuffledOpts.map((opt,i)=>`
-      <div class="vote-card" onclick="castVote(${i},'${opt.owner.replace(/'/g,"\\'")}')">
+      <div class="vote-card" onclick="castVote(${i},'${(opt.owner||'').replace(/'/g,"\\'")}',${JSON.stringify(shuffledOpts).replace(/'/g,"\\'")})">
         <div class="vc-text">${san(opt.text)}</div>
       </div>`).join('')
     :!isMyTurn&&myVote?`
@@ -1052,24 +1059,8 @@ function renderVoting(){
     ${CU.isAdmin?`<button class="bcg bf" style="margin-top:12px" onclick="revealResults()">📊 اكشف النتائج</button>`:''}
   </div>`;
 }
-
-let _voteOpts=[];
 function castVote(optIdx,owner){
-  // Store the opts order so we can reference later
-  const q=_room.currentQ;
-  const turn=_room.currentTurn||0;
-  const order=_room.turnOrder||[];
-  const turnPlayer=order[turn%order.length];
-  const answers=_room.answers||{};
-  const opts=[];
-  opts.push({text:q.term,isReal:true,owner:'__real__'});
-  Object.entries(answers).forEach(([player,data])=>{
-    if(player===turnPlayer)return;
-    const displayAns=data.decoy||data.answer;
-    if(displayAns&&displayAns!==q.term)opts.push({text:displayAns,isReal:false,owner:player});
-  });
-  const shuffled=shuf([...opts]);
-  DB.ref(`tlm_room/votes/${CU.name}`).set({optIdx,owner:shuffled[optIdx]?.owner||'__real__',text:shuffled[optIdx]?.text||''});
+  DB.ref(`tlm_room/votes/${fbKey(CU.name)}`).set({optIdx,owner,voterName:CU.name});
 }
 
 function revealResults(){
@@ -1379,15 +1370,11 @@ function renderPinResetSection(){
   }
 }
 function resetPinFor(name){
-  const msg=CU.isAdmin&&name!==CU.name?`إعادة ضبط رقم سر "${name}"؟ سيُطلب منه اختيار رقم جديد عند الدخول`:`إعادة ضبط رقمك السري؟ ستحتاج اختيار رقم جديد`;
+  const msg=CU.isAdmin&&name!==CU.name?`إعادة ضبط رقم سر "${name}"؟`:`إعادة ضبط رقمك السري؟`;
   if(!confirm(msg))return;
-  DB.ref(`tlm_users/${name}/pin`).remove().then(()=>{
+  DB.ref(`tlm_users/${fbKey(name)}/pin`).remove().then(()=>{
     toast(`تم إعادة ضبط رقم ${name} ✓`,'ok');
-    if(name===CU.name){
-      // Force logout to re-set PIN
-      ls('tlm_user',null);
-      toast('سيُطلب منك رقم جديد عند الدخول القادم','ok',3500);
-    }
+    if(name===CU.name){ls('tlm_session',null);toast('سيُطلب منك رقم جديد عند الدخول القادم','ok',3500);}
   });
 }
 
@@ -1463,11 +1450,10 @@ function crConfirm(){
   out.getContext('2d').drawImage(cv,0,0,280,280,0,0,300,300);
   const url=out.toDataURL('image/jpeg',.87);
   PH[_phTarget]=url;
-  // Save to localStorage
-  const sp=JSON.parse(localStorage.getItem('tlm_photos')||'{}');
-  sp[_phTarget]=url;localStorage.setItem('tlm_photos',JSON.stringify(sp));
-  // Save to Firebase (admin only saves permanently)
-  if(CU.isAdmin)DB.ref(`photos/${_phTarget}`).set(url);
+  // Save to localStorage always
+  try{const sp=JSON.parse(localStorage.getItem('tlm_photos')||'{}');sp[_phTarget]=url;localStorage.setItem('tlm_photos',JSON.stringify(sp));}catch(e){}
+  // Save to Firebase always (all users, not just admin) — photos are shared
+  DB.ref(`photos/${fbKey(_phTarget)}`).set(url);
   h($('cropOv'));
   toast('تم حفظ الصورة ✓','ok');
   renderPhotos();
@@ -1503,25 +1489,40 @@ function deletePermName(name){
 window.addEventListener('load',()=>{
   // Load local saved photos first
   try{const sp=JSON.parse(localStorage.getItem('tlm_photos')||'{}');Object.assign(PH,sp);}catch(e){}
-  // Load perm names
-  const pn=lg('tlm_perm_names');
-  // Load custom photos from Firebase
-  DB.ref('photos').once('value').then(snap=>{
-    if(snap.exists())Object.assign(PH,snap.val());
+
+  // Load Firebase data (photos, perm names, questions)
+  Promise.all([
+    DB.ref('photos').once('value').then(snap=>{
+      if(snap.exists()){
+        // photos stored with fbKey — need to map back
+        const data=snap.val();
+        Object.entries(data).forEach(([key,url])=>{
+          // Find matching name for this key
+          const allP=[...P_NAMES,...(lg('tlm_perm_names')||[])];
+          const match=allP.find(n=>fbKey(n)===key);
+          if(match)PH[match]=url;
+        });
+      }
+    }),
+    DB.ref('tlm_perm_names').once('value').then(snap=>{
+      if(snap.exists()){ls('tlm_perm_names',snap.val());}
+    }),
+    DB.ref('tlm_questions').once('value').then(snap=>{
+      if(snap.exists()){const q=snap.val();if(Array.isArray(q))ls('tlm_questions',q);}
+    })
+  ]).then(()=>{
+    // Check 72h session
+    try{
+      const sess=JSON.parse(localStorage.getItem('tlm_session')||'null');
+      if(sess && sess.name && sess.expires > Date.now()){
+        // Valid session — login directly without PIN
+        loginDone(sess.name);
+        return;
+      }
+    }catch(e){}
+    // No valid session — show login
     renderLogin();
   });
-  // Load perm names from Firebase
-  DB.ref('tlm_perm_names').once('value').then(snap=>{
-    if(snap.exists()){ls('tlm_perm_names',snap.val());}
-  });
-  // Load custom questions from Firebase
-  DB.ref('tlm_questions').once('value').then(snap=>{
-    if(snap.exists()){const q=snap.val();if(Array.isArray(q))ls('tlm_questions',q);}
-  });
-  // Auto-login if remembered
-  const saved=ls('tlm_user');
-  if(saved){loginSelect(saved);}
-  else{renderLogin();}
 });
 </script>
 </body>
