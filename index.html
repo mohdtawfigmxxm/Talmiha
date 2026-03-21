@@ -4,17 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>تلميحة 💡</title>
-<!-- إضافة خطوط مبهجة للألعاب -->
 <link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
 /* ══ الألوان والمتغيرات ══ */
 :root {
-  --bg: #f8faff; /* لون خلفية فاتح ومبهج */
+  --bg: #f8faff;
   --card: #ffffff;
-  --primary: #6366f1; /* أزرق بنفسجي مبهج */
+  --primary: #6366f1;
   --primary-dark: #4f46e5;
-  --secondary: #ecfdf5; /* أخضر فاتح */
-  --accent: #f59e0b; /* برتقالي/ذهبي مرح */
+  --secondary: #ecfdf5;
+  --accent: #f59e0b;
   --text-dark: #1e293b;
   --text-muted: #64748b;
   --border: #e2e8f0;
@@ -23,72 +22,29 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body {
-  font-family: 'Tajawal', sans-serif;
-  background-color: var(--bg);
-  color: var(--text-dark);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
+body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); color: var(--text-dark); min-height: 100vh; overflow-x: hidden; }
 
-/* الخطوط للعناوين */
 .title-font { font-family: 'Lalezar', cursive; letter-spacing: 0.5px; }
-
 .hidden { display: none !important; }
 
 /* ══ الأزرار ══ */
-button {
-  font-family: 'Tajawal', sans-serif;
-  cursor: pointer;
-  border: none;
-  border-radius: 16px;
-  font-weight: 800;
-  font-size: 1rem;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  user-select: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
+button { font-family: 'Tajawal', sans-serif; cursor: pointer; border: none; border-radius: 16px; font-weight: 800; font-size: 1rem; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; gap: 8px; }
 button:active { transform: scale(0.95); }
 button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: white;
-  padding: 14px 20px;
-  width: 100%;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-}
-.btn-secondary {
-  background: white;
-  color: var(--primary);
-  border: 2px solid var(--border);
-  padding: 12px 20px;
-  width: 100%;
-}
+.btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 14px 20px; width: 100%; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+.btn-secondary { background: white; color: var(--primary); border: 2px solid var(--border); padding: 12px 20px; width: 100%; }
 .btn-secondary:active { background: var(--bg); border-color: var(--primary); }
 .btn-success { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 14px 20px; width: 100%; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
 .btn-danger { background: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 12px; font-size: 0.9rem; }
 
 /* ══ البطاقات (Cards) ══ */
-.card {
-  background: var(--card);
-  border-radius: 24px;
-  padding: 24px;
-  margin-bottom: 16px;
-  box-shadow: 0 8px 24px rgba(148, 163, 184, 0.1);
-  border: 2px solid #fff;
-}
+.card { background: var(--card); border-radius: 24px; padding: 24px; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(148, 163, 184, 0.1); border: 2px solid #fff; }
 .eyebrow { font-size: 0.8rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 1px; }
 .card-title { font-size: 1.8rem; color: var(--text-dark); margin-bottom: 16px; line-height: 1.2; }
 
-/* ══ المدخلات (Inputs) ══ */
-.inp {
-  width: 100%; padding: 14px 16px; border: 2px solid var(--border); border-radius: 16px;
-  font-size: 1.1rem; font-family: inherit; background: var(--bg); color: var(--text-dark); outline: none; transition: 0.2s; font-weight: 700;
-}
+/* ══ المدخلات ══ */
+.inp { width: 100%; padding: 14px 16px; border: 2px solid var(--border); border-radius: 16px; font-size: 1.1rem; font-family: inherit; background: var(--bg); color: var(--text-dark); outline: none; transition: 0.2s; font-weight: 700; }
 .inp:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15); }
 
 /* Tags */
@@ -96,22 +52,14 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .tag { padding: 8px 16px; border: 2px solid var(--border); border-radius: 20px; font-size: 0.9rem; font-weight: 700; color: var(--text-muted); background: white; cursor: pointer; transition: 0.2s; }
 .tag.active { background: var(--primary); border-color: var(--primary); color: white; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(99,102,241,0.2); }
 
-/* ══ الشريط العلوي (Top Bar) ══ */
-.top-bar {
-  position: sticky; top: 0; z-index: 90; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
-  padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border);
-}
+/* ══ الشريط العلوي ══ */
+.top-bar { position: sticky; top: 0; z-index: 90; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
 .brand { font-size: 1.5rem; color: var(--accent); text-shadow: 1px 1px 0px rgba(0,0,0,0.1); }
 
-/* الشريط العلوي للاعبين (Presence Bar) */
-.presence-bar {
-  display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; margin-bottom: 16px;
-  scrollbar-width: none;
-}
+/* شريط التواجد */
+.presence-bar { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; margin-bottom: 16px; scrollbar-width: none; }
 .presence-bar::-webkit-scrollbar { display: none; }
-.p-avatar {
-  position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 50px;
-}
+.p-avatar { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 50px; }
 .p-avatar img { width: 44px; height: 44px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); object-fit: cover; }
 .p-avatar .status { position: absolute; top: 0; right: 0; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; }
 .p-avatar .status.online { background: var(--success); }
@@ -119,13 +67,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .p-avatar span { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50px; text-align: center;}
 
 /* ══ عناصر اللعبة ══ */
-.timer-box {
-  background: var(--card); border-radius: 20px; padding: 16px; text-align: center; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.05); border: 2px solid var(--border);
-}
+.timer-box { background: var(--card); border-radius: 20px; padding: 16px; text-align: center; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.05); border: 2px solid var(--border); }
 .timer-num { font-size: 3.5rem; color: var(--primary); line-height: 1; margin-bottom: 8px; transition: color 0.3s; }
 .timer-num.danger { color: var(--danger); animation: pulse 1s infinite; }
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-
 .timer-bar-bg { width: 100%; height: 12px; background: var(--bg); border-radius: 10px; overflow: hidden; }
 .timer-bar-fill { height: 100%; background: var(--success); border-radius: 10px; transition: width 1s linear, background-color 0.3s; }
 .timer-bar-fill.danger { background: var(--danger); }
@@ -133,19 +78,16 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .hint-box { background: #fef3c7; border: 2px solid #fde68a; border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 16px; }
 .hint-text { font-size: 1.2rem; font-weight: 800; color: #92400e; }
 
-.selectable-card {
-  background: white; border: 2px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px;
-}
+.selectable-card { background: white; border: 2px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
 .selectable-card:active { transform: scale(0.98); border-color: var(--primary); background: #eef2ff; }
 .selectable-card .num { font-size: 1.5rem; color: var(--accent); width: 30px; text-align: center; }
 .selectable-card .txt { font-size: 1rem; font-weight: 700; color: var(--text-dark); flex: 1; }
 
 .player-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border: 1px solid var(--border); border-radius: 16px; margin-bottom: 8px; }
 .player-row.top { border: 2px solid #fde68a; background: #fffbeb; }
-.player-row img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--primary); }
 .score-badge { font-size: 1.4rem; color: var(--primary); min-width: 40px; text-align: center; }
 
-/* ══ التنبيهات (Toasts) ══ */
+/* ══ التنبيهات ══ */
 .toast-container { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
 .toast { background: var(--text-dark); color: white; padding: 10px 20px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
@@ -157,18 +99,15 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 #crWrap { position: relative; width: 280px; height: 280px; border-radius: 50%; overflow: hidden; border: 4px solid var(--accent); touch-action: none; background: #000; }
 #crCanvas { position: absolute; top: 0; left: 0; }
 
-/* ══ حاوية الصفحات ══ */
 .page { max-width: 600px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
 .emoji-icon { font-size: 3rem; margin-bottom: 12px; display: inline-block; animation: float 3s ease-in-out infinite; }
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-/* ══ شاشة الانتظار ══ */
 .waiting-box { text-align: center; padding: 40px 20px; }
 .spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid rgba(99, 102, 241, 0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* شارة الأدمن */
-.admin-badge { background: #fee2e2; color: #b91c1c; font-size: 0.6rem; padding: 2px 6px; border-radius: 8px; font-family: 'Tajawal', sans-serif; font-weight: 800; vertical-align: middle; margin-right: 4px; }
+.admin-badge { background: #fee2e2; color: #b91c1c; font-size: 0.6rem; padding: 2px 6px; border-radius: 8px; font-weight: 800; vertical-align: middle; margin-right: 4px; }
 </style>
 </head>
 <body>
@@ -176,7 +115,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 <div class="toast-container" id="tc"></div>
 <input type="file" id="fileInp" accept="image/*" style="display:none" onchange="onFilePick(event)">
 
-<!-- نافذة قص الصورة -->
 <div id="crOv" class="hidden">
   <div class="title-font" style="color:white; font-size:1.5rem; margin-bottom:16px;">اضبط صورتك 📸</div>
   <div style="color:#cbd5e1; font-size:0.9rem; margin-bottom:16px; font-weight:700;">اسحب بإصبعك لتحريك الصورة</div>
@@ -192,13 +130,11 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 </div>
 
 <div id="app">
-  <!-- الشريط العلوي العام -->
   <div class="top-bar">
     <div class="brand title-font">💡 تلميحة</div>
     <div id="topUser" style="display:flex; align-items:center; gap:8px; font-weight:800; font-size:0.9rem;"></div>
   </div>
 
-  <!-- ══ صفحة الدخول ══ -->
   <div id="pLogin" class="page">
     <div style="text-align:center; padding:20px 0 30px;">
       <span class="emoji-icon">🎭</span>
@@ -229,9 +165,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     </div>
   </div>
 
-  <!-- ══ الشاشة الرئيسية ══ -->
   <div id="pHome" class="page hidden">
-    <!-- شريط اللاعبين المتصلين -->
     <div style="font-size:0.8rem; font-weight:800; color:var(--text-muted); margin-bottom:8px;">المتواجدون الآن:</div>
     <div class="presence-bar" id="homePresence"></div>
 
@@ -239,7 +173,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
       <div class="eyebrow" id="greetingTime">مرحباً بك</div>
       <div class="card-title title-font" style="font-size:2.2rem;">يا <span id="homeNameTxt" style="color:var(--primary)"></span> 👋</div>
       
-      <!-- قسم الغرفة النشطة للجميع -->
       <div id="activeRoomSect" style="background:var(--bg); border:2px solid var(--border); border-radius:20px; padding:20px; text-align:center; margin-bottom:20px;">
         <div class="spinner" id="roomSpinner"></div>
         <div id="roomStatusTxt" style="font-weight:800; color:var(--text-muted); font-size:1.1rem;">جاري البحث عن غرف...</div>
@@ -248,20 +181,17 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         </div>
       </div>
 
-      <!-- أزرار الأدمن -->
       <div id="adminBtns" class="hidden">
         <div style="border-top:2px dashed var(--border); margin:20px 0; position:relative;">
           <span style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); background:var(--card); padding:0 10px; font-weight:800; font-size:0.8rem; color:var(--primary);">أدوات المشرف</span>
         </div>
         <button class="btn-primary" onclick="showCreateRoom()" style="margin-bottom:12px;">✨ إنشاء غرفة جديدة</button>
-        <button class="btn-secondary" onclick="navSettings()">⚙️ إعدادات الأسئلة</button>
       </div>
       
       <button class="btn-secondary" onclick="doLogout()" style="margin-top:12px; border-color:transparent; color:var(--danger); background:#fee2e2;">🚪 تسجيل خروج</button>
     </div>
   </div>
 
-  <!-- ══ إنشاء الغرفة (للأدمن) ══ -->
   <div id="pCreateRoom" class="page hidden">
     <div class="card">
       <div class="eyebrow">إعدادات اللعبة</div>
@@ -307,7 +237,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     </div>
   </div>
 
-  <!-- ══ ساحة الانتظار (Lobby) ══ -->
   <div id="pLobby" class="page hidden">
     <div class="card">
       <div style="text-align:center; margin-bottom:20px;">
@@ -338,22 +267,15 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     </div>
   </div>
 
-  <!-- ══ ساحة اللعب الرئيسية ══ -->
   <div id="pGame" class="page hidden">
-    <!-- شريط اللاعبين أثناء اللعب -->
     <div class="presence-bar" id="gamePresence" style="background:var(--card); border-radius:16px; padding:12px; margin-bottom:16px; border:2px solid var(--border);"></div>
-    
-    <!-- محتوى اللعبة الديناميكي -->
     <div id="gameContent"></div>
-
-    <!-- أزرار تحكم الأدمن أثناء اللعب -->
     <div id="gameAdminControls" class="hidden" style="margin-top:20px; border-top:2px dashed var(--border); padding-top:16px; display:flex; gap:8px;">
       <button class="btn-secondary" id="btnPause" onclick="togglePause()" style="flex:1; font-size:0.9rem;">⏸️ إيقاف مؤقت</button>
       <button class="btn-danger" onclick="closeRoom()" style="flex:1; border-radius:16px;">إنهاء الغرفة</button>
     </div>
   </div>
 
-  <!-- ══ لوحة المتصدرين ══ -->
   <div id="pLeader" class="page hidden">
     <div class="card">
       <div style="text-align:center; margin-bottom:24px;">
@@ -373,18 +295,22 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     </div>
   </div>
 
-</div><!-- نهاية التطبيق -->
+</div>
 
 <!-- ══ المكتبات (Firebase) ══ -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
 <script>
-// إعدادات فايربيز
+// الإعدادات الكاملة كما في كودك لتفادي أي أخطاء اتصال
 firebase.initializeApp({
   apiKey: "AIzaSyB9mj2PkgVpX6M_BW1cUMaymY2VWA4pwqg",
+  authDomain: "dogs-padel.firebaseapp.com",
   databaseURL: "https://dogs-padel-default-rtdb.firebaseio.com",
-  projectId: "dogs-padel"
+  projectId: "dogs-padel",
+  storageBucket: "dogs-padel.firebasestorage.app",
+  messagingSenderId: "989531067145",
+  appId: "1:989531067145:web:2169954011b998bf8779d8"
 });
 const DB = firebase.database();
 
@@ -393,30 +319,29 @@ const ADMIN = 'محمد';
 const BOTS =['كليب','كلبون','سيمبا','رعد','مشمش'];
 const isBot = n => BOTS.includes(n);
 
-// الأسئلة الافتراضية المدمجة
+// تشفير آمن لأسماء فايربيز (ضروري جداً لتفادي أخطاء المسارات)
+const encName = n => encodeURIComponent(n);
+
 const QB =[
   { term: 'ابن خلدون', cat: 'تاريخ', hints:['ولد في تونس','مؤسس علم الاجتماع','مؤلف المقدمة','عمل قاضياً بمصر','شرح دورة الحضارات'] },
   { term: 'ثقب أسود', cat: 'فيزياء', hints:['جاذبيته تمنع الضوء','تنبأ به أينشتاين','حدوده تسمى أفق الحدث','صور لأول مرة 2019','كتلته هائلة جداً'] },
   { term: 'الأمازون', cat: 'جغرافيا', hints:['نهر ضخم جداً','معظمه في البرازيل','يصب في المحيط الأطلسي','رئة الأرض','فيه آلاف أنواع الأسماك'] }
 ];
 
-// ══ المتغيرات العامة (State) ══
 let ME = { name: '', isAdmin: false, photo: '' };
-let ALL_PHOTOS = {}; // تخزين صور جميع اللاعبين للعرض
-let _room = null;    // كائن الغرفة النشطة
-let _roomRef = null; // مراقب الغرفة
-let _timerInt = null; // مؤقت الشاشة
+let ALL_PHOTOS = {}; 
+let _room = null;    
+let _roomRef = null; 
+let _timerInt = null; 
 let _presenceRef = null;
 
-// أدوات القص
 let _crImg = null, _crOX = 0, _crOY = 0, _crDrag = null, _crBase = 1;
 
-// ══ مساعدات ══
 const $ = id => document.getElementById(id);
 const hide = id => { if($(id)) $(id).classList.add('hidden'); };
 const show = (id, flex=false) => { if($(id)) { $(id).classList.remove('hidden'); if(flex) $(id).style.display='flex'; else $(id).style.display=''; } };
 const san = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const shuf = a => { for(let i=a.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const shuf = a => { for(let i=a.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]; } return a; };
 
 function toast(msg, type='success') {
   const c = $('tc'), el = document.createElement('div');
@@ -434,45 +359,47 @@ function getAvatar(name, size=44) {
   return `<div style="width:${size}px; height:${size}px; background:${col}; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-family:'Lalezar'; font-size:${size*0.5}px; border:3px solid white; box-shadow:0 2px 8px rgba(0,0,0,0.1)">${name[0]}</div>`;
 }
 
-// ══ تهيئة النظام ══
 window.onload = () => {
   const savedName = localStorage.getItem('tlm_name');
   if (savedName) {
-    // جلب البروفايل للتحقق من الصلاحية (24 ساعة)
-    DB.ref(`tlm3_profiles/${savedName}`).once('value', snap => {
-      const p = snap.val();
-      if (p && p.expires > Date.now()) {
-        ME.name = savedName; ME.isAdmin = (savedName === ADMIN);
-        if (p.photo) { ME.photo = p.photo; ALL_PHOTOS[savedName] = p.photo; }
-        startSession();
-      } else {
-        localStorage.removeItem('tlm_name');
-        navPage('pLogin');
-      }
-    });
+    try {
+      DB.ref(`tlm3_profiles/${encName(savedName)}`).once('value').then(snap => {
+        const p = snap.val();
+        if (p && p.expires > Date.now()) {
+          ME.name = savedName; ME.isAdmin = (savedName === ADMIN);
+          if (p.photo) { ME.photo = p.photo; ALL_PHOTOS[savedName] = p.photo; }
+          startSession();
+        } else {
+          localStorage.removeItem('tlm_name'); navPage('pLogin');
+        }
+      }).catch(() => navPage('pLogin'));
+    } catch(e) { navPage('pLogin'); }
   } else {
     navPage('pLogin');
   }
 };
 
-function navPage(pageId) {['pLogin','pHome','pCreateRoom','pLobby','pGame','pLeader'].forEach(hide);
-  show(pageId);
-}
+function navPage(pageId) {['pLogin','pHome','pCreateRoom','pLobby','pGame','pLeader'].forEach(hide); show(pageId); }
 
-// ══ تسجيل الدخول والصور ══
 function goStep1() { show('lstep1'); hide('lstep2'); }
+
 function goStep2() {
   const n = $('nameInp').value.trim();
   if(n.length < 2) return toast('اكتب اسماً من حرفين على الأقل', 'err');
-  // جلب الصورة القديمة إن وجدت
-  DB.ref(`tlm3_profiles/${n}`).once('value', snap => {
-    const p = snap.val();
-    if(p && p.expires > Date.now() && p.photo) {
-      ME.photo = p.photo; ALL_PHOTOS[n] = p.photo;
-      $('photoPreview').innerHTML = `<img src="${p.photo}" style="width:80px;height:80px;border-radius:50%;border:4px solid var(--primary);object-fit:cover;"><div style="font-weight:800; color:var(--success); margin-top:8px;">✅ صورتك محفوظة</div><div style="font-size:0.8rem; color:var(--text-muted)">اضغط لتغييرها</div>`;
-    }
-    hide('lstep1'); show('lstep2');
-  });
+  
+  // ننتقل فوراً حتى لا تعلق الشاشة
+  hide('lstep1'); show('lstep2');
+  
+  // البحث عن صورة قديمة في الخلفية
+  try {
+    DB.ref(`tlm3_profiles/${encName(n)}`).once('value').then(snap => {
+      const p = snap.val();
+      if(p && p.expires > Date.now() && p.photo) {
+        ME.photo = p.photo; ALL_PHOTOS[n] = p.photo;
+        $('photoPreview').innerHTML = `<img src="${p.photo}" style="width:80px;height:80px;border-radius:50%;border:4px solid var(--primary);object-fit:cover;"><div style="font-weight:800; color:var(--success); margin-top:8px;">✅ صورتك محفوظة</div><div style="font-size:0.8rem; color:var(--text-muted)">اضغط لتغييرها</div>`;
+      }
+    }).catch(e => console.log('No prev image found'));
+  } catch(e){}
 }
 
 function doLogin() {
@@ -481,16 +408,13 @@ function doLogin() {
   localStorage.setItem('tlm_name', n);
   if(ME.photo) ALL_PHOTOS[n] = ME.photo;
   
-  // حفظ البروفايل (الصورة مضغوطة مسبقاً) لمدة 24 ساعة
-  DB.ref(`tlm3_profiles/${n}`).set({ name: n, photo: ME.photo, ts: Date.now(), expires: Date.now() + 24*3600*1000 });
+  DB.ref(`tlm3_profiles/${encName(n)}`).set({ name: n, photo: ME.photo, ts: Date.now(), expires: Date.now() + 24*3600*1000 });
   startSession();
 }
 
 function startSession() {
   $('topUser').innerHTML = getAvatar(ME.name, 32) + `<span>${ME.name}</span>` + (ME.isAdmin ? '<span class="admin-badge">أدمن</span>' : '');
-  listenPresence();
-  listenRoom();
-  navHome();
+  listenPresence(); listenRoom(); navHome();
 }
 
 function doLogout() {
@@ -502,9 +426,8 @@ function doLogout() {
   navPage('pLogin'); goStep1();
 }
 
-// ══ التواجد (Presence) ══
 function listenPresence() {
-  const ref = DB.ref(`tlm3_presence/${ME.name}`);
+  const ref = DB.ref(`tlm3_presence/${encName(ME.name)}`);
   ref.set({ name: ME.name, photo: ME.photo, ts: Date.now() });
   ref.onDisconnect().remove();
   _presenceRef = ref;
@@ -513,10 +436,9 @@ function listenPresence() {
     const pres = snap.val() || {};
     let html = '';
     Object.values(pres).forEach(p => {
-      if(p.photo) ALL_PHOTOS[p.name] = p.photo; // تحديث قاموس الصور
+      if(p.photo) ALL_PHOTOS[p.name] = p.photo; 
       html += `<div class="p-avatar">${getAvatar(p.name, 44)}<div class="status online"></div><span>${p.name}</span></div>`;
     });
-    // تحديث الأشرطة
     if($('homePresence')) $('homePresence').innerHTML = html;
     updateGamePresence(pres);
   });
@@ -527,13 +449,12 @@ function updateGamePresence(presObj) {
   let html = '';
   _room.turnOrder.forEach(p => {
     if(isBot(p)) return;
-    const isOnline = !!presObj[p];
+    const isOnline = !!presObj[encName(p)];
     html += `<div class="p-avatar" style="opacity:${isOnline?1:0.4}">${getAvatar(p, 40)}<div class="status ${isOnline?'online':'offline'}"></div><span>${p}</span></div>`;
   });
   $('gamePresence').innerHTML = html;
 }
 
-// ══ قص ورفع الصور (خوارزمية الضغط للـ WEBP) ══
 function onFilePick(ev) {
   const f = ev.target.files[0]; if(!f) return;
   const rd = new FileReader();
@@ -552,4 +473,445 @@ function crDraw() {
   const cv=$('crCanvas'), ctx=cv.getContext('2d');
   ctx.clearRect(0,0,280,280);
   const sc = _crBase * parseFloat($('crZoom').value);
+  const iw = _crImg.width * sc, ih = _crImg.height * sc;
+  ctx.drawImage(_crImg, (280-iw)/2 + _crOX, (280-ih)/2 + _crOY, iw, ih);
+}
+function crDragInit() {
+  const wp = $('crWrap');
+  wp.onpointerdown = e => {
+    e.preventDefault(); _crDrag = {x: e.clientX-_crOX, y: e.clientY-_crOY};
+    wp.setPointerCapture(e.pointerId);
+    wp.onpointermove = ev => { if(_crDrag){ _crOX = ev.clientX-_crDrag.x; _crOY = ev.clientY-_crDrag.y; crDraw(); } };
+    wp.onpointerup = () => _crDrag = null;
+  };
+}
+function crConfirm() {
+  const cv = $('crCanvas');
+  const out = document.createElement('canvas'); out.width=120; out.height=120;
+  out.getContext('2d').drawImage(cv, 0, 0, 280, 280, 0, 0, 120, 120);
+  const url = out.toDataURL('image/webp', 0.6); 
+  ME.photo = url;
+  $('photoPreview').innerHTML = `<img src="${url}" style="width:80px;height:80px;border-radius:50%;border:4px solid var(--primary);object-fit:cover;"><div style="font-weight:800; color:var(--success); margin-top:8px;">✅ تم اختيار الصورة</div>`;
+  hide('crOv');
+}
+function crCancel() { hide('crOv'); }
+
+function navHome() {
+  navPage('pHome');
+  $('homeNameTxt').textContent = ME.name;
+  if(ME.isAdmin) show('adminBtns'); else hide('adminBtns');
+  renderRoomStatus();
+}
+
+function selTag(el) {
+  el.parentElement.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function showCreateRoom() { navPage('pCreateRoom'); }
+
+function createRoom() {
+  const name = $('rName').value || 'غرفة اللعب';
+  const cats = Array.from($('rCats').querySelectorAll('.active')).map(t=>t.textContent);
+  const time = parseInt($('rTime').querySelector('.active').textContent);
+  const rounds = parseInt($('rRounds').querySelector('.active').textContent);
+
+  DB.ref('tlm3_room').set({
+    name: name, host: ME.name, phase: 'lobby',
+    settings: { cats, time, rounds },
+    players: {[encName(ME.name)]: { name: ME.name, ts: Date.now() } }
+  }).then(() => navLobby());
+}
+
+function listenRoom() {
+  _roomRef = DB.ref('tlm3_room').on('value', snap => {
+    _room = snap.val();
+    const isLobby = _room && _room.phase === 'lobby';
+    const isPlaying = _room && _room.phase !== 'lobby' && _room.phase !== 'final';
+    
+    if(!$('pHome').classList.contains('hidden')) renderRoomStatus();
+    if(isLobby && !$('pLobby').classList.contains('hidden')) renderLobby();
+    
+    if(isPlaying) {
+      if(_room.phase === 'round_result') renderResult();
+      else renderGamePhase();
+    }
+  });
+}
+
+function renderRoomStatus() {
+  const btnWrap = $('joinRoomBtnWrap'), txt = $('roomStatusTxt'), spin = $('roomSpinner');
+  if(!_room) {
+    txt.textContent = 'لا توجد غرفة نشطة حالياً. بانتظار المشرف.';
+    txt.style.color = 'var(--text-muted)';
+    show(spin.id); hide(btnWrap.id);
+  } else if (_room.phase === 'lobby') {
+    txt.textContent = `غرفة "${_room.name}" مفتوحة للإنضمام!`;
+    txt.style.color = 'var(--primary)';
+    hide(spin.id);
+    if(_room.players && _room.players[encName(ME.name)]) { txt.textContent = 'أنت داخل الغرفة.. جاري التوجيه'; navLobby(); }
+    else show(btnWrap.id);
+  } else {
+    txt.textContent = 'الغرفة نشطة واللعب جاري 🚀';
+    hide(spin.id); hide(btnWrap.id);
+  }
+}
+
+function joinRoom() {
+  if(!_room) return;
+  DB.ref(`tlm3_room/players/${encName(ME.name)}`).set({ name: ME.name, ts: Date.now() });
+  navLobby();
+}
+function leaveRoom() { DB.ref(`tlm3_room/players/${encName(ME.name)}`).remove(); navHome(); }
+function closeRoom() { if(confirm('تأكيد إنهاء الغرفة للجميع؟')){ DB.ref('tlm3_room').remove(); navHome(); } }
+
+function renderLobby() {
+  navPage('pLobby');
+  if(!_room || _room.phase !== 'lobby') return;
   
+  $('lobbyRoomName').textContent = _room.name;
+  $('lobbySettingsTxt').textContent = `⏳ ${_room.settings.time} ثانية | 🔄 ${_room.settings.rounds} جولات لكل لاعب`;
+  
+  const players = Object.values(_room.players || {}).map(p => p.name);
+  $('lobbyCount').textContent = players.length;
+  
+  let phtml = '';
+  players.forEach(p => {
+    const isH = p === _room.host;
+    phtml += `<div class="player-row">
+      ${getAvatar(p, 40)}
+      <div style="flex:1; font-weight:800; font-size:1.1rem;">${p}</div>
+      ${isH ? '<span class="admin-badge">مضيف 👑</span>' : '<span style="color:var(--success); font-weight:800; font-size:0.8rem;">جاهز ✓</span>'}
+      ${ME.isAdmin && p!==ME.name ? `<button class="btn-danger" style="padding:4px 8px;" onclick="kick('${p}')">طرد</button>` : ''}
+    </div>`;
+  });
+  $('lobbyPlayers').innerHTML = phtml;
+
+  if(ME.isAdmin) {
+    show('lobbyAdminBtns'); show('lobbyBotSect'); hide('lobbyPlayerBtns');
+    let bhtml = '';
+    BOTS.forEach(b => {
+      const active = _room.players && _room.players[encName(b)];
+      bhtml += `<button class="tag ${active?'active':''}" onclick="toggleBot('${b}')">🤖 ${b}</button>`;
+    });
+    $('lobbyBots').innerHTML = bhtml;
+  } else {
+    hide('lobbyAdminBtns'); hide('lobbyBotSect'); show('lobbyPlayerBtns');
+  }
+}
+
+function kick(p) { DB.ref(`tlm3_room/players/${encName(p)}`).remove(); }
+function toggleBot(b) {
+  if(_room.players && _room.players[encName(b)]) kick(b);
+  else DB.ref(`tlm3_room/players/${encName(b)}`).set({ name: b, isBot: true });
+}
+
+function startGame() {
+  const players = Object.values(_room.players || {}).map(p => p.name);
+  if(players.length < 2) return toast('نحتاج لاعبين على الأقل!', 'err');
+  
+  const order = shuf(players);
+  let scores = {}; order.forEach(p => scores[p] = 0);
+  
+  const q = QB[Math.floor(Math.random() * QB.length)];
+  
+  DB.ref('tlm3_room').update({
+    phase: 'pick_hint', turnOrder: order, currentTurn: 0,
+    totalTurns: order.length * _room.settings.rounds,
+    scores: scores, currentQ: q, answers: {}, votes: {}
+  });
+}
+
+function getActivePlayer() {
+  const order = _room.turnOrder || [];
+  return order[(_room.currentTurn || 0) % order.length];
+}
+
+function setGameTimer(durationSecs) {
+  if(!ME.isAdmin) return;
+  const endTime = firebase.database.ServerValue.TIMESTAMP;
+  DB.ref('tlm3_room').update({ endTimeObj: endTime, timerDur: durationSecs, paused: false });
+}
+function togglePause() {
+  if(!ME.isAdmin || !_room) return;
+  if(_room.paused) {
+    const remain = _room.pausedRemain || 0;
+    DB.ref('tlm3_room').update({ endTimeObj: firebase.database.ServerValue.TIMESTAMP, timerDur: remain, paused: false });
+  } else {
+    const elapsed = Math.floor((Date.now() - (_room.realStartTime||Date.now())) / 1000);
+    const remain = Math.max(0, (_room.timerDur || 60) - elapsed);
+    DB.ref('tlm3_room').update({ paused: true, pausedRemain: remain });
+  }
+}
+
+function renderTimerBox() {
+  return `
+    <div class="timer-box">
+      <div class="timer-num title-font" id="tNum">--</div>
+      <div class="timer-bar-bg"><div class="timer-bar-fill" id="tFill" style="width:100%"></div></div>
+      ${_room.paused ? '<div style="color:var(--danger); font-weight:800; margin-top:8px; animation:pulse 1s infinite">⏸️ اللعبة متوقفة مؤقتاً</div>' : ''}
+    </div>
+  `;
+}
+
+function startClientTimer(onEndAdminAction) {
+  clearInterval(_timerInt);
+  if(!_room || _room.paused) {
+    const rm = _room.pausedRemain || 0;
+    if($('tNum')) $('tNum').textContent = rm;
+    return;
+  }
+  
+  if(!_room.realStartTime && _room.endTimeObj) {
+    DB.ref('tlm3_room/endTimeObj').once('value', s => {
+      const serverTS = s.val();
+      if(serverTS && !_room.realStartTime) DB.ref('tlm3_room/realStartTime').set(serverTS);
+    });
+  }
+
+  const startTS = _room.realStartTime || Date.now();
+  const dur = _room.timerDur || 60;
+  
+  _timerInt = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - startTS) / 1000);
+    const left = Math.max(0, dur - elapsed);
+    const pct = (left / dur) * 100;
+    
+    const num = $('tNum'), fill = $('tFill');
+    if(num) {
+      num.textContent = left;
+      if(left <= 5) { num.classList.add('danger'); fill.classList.add('danger'); }
+    }
+    if(fill) fill.style.width = `${pct}%`;
+
+    if(left <= 0) {
+      clearInterval(_timerInt);
+      if(ME.isAdmin) onEndAdminAction();
+    }
+  }, 500);
+}
+
+function renderGamePhase() {
+  navPage('pGame');
+  if(ME.isAdmin) show('gameAdminControls', true); else hide('gameAdminControls');
+  $('btnPause').textContent = _room.paused ? '▶️ استئناف' : '⏸️ إيقاف مؤقت';
+
+  const phase = _room.phase;
+  const activeP = getActivePlayer();
+  const isMe = activeP === ME.name;
+  const q = _room.currentQ;
+  let html = '';
+
+  html += `<div style="display:flex; align-items:center; gap:16px; margin-bottom:20px; background:white; padding:16px; border-radius:20px; border:2px solid var(--primary);">
+    ${getAvatar(activeP, 60)}
+    <div><div class="eyebrow">صاحب الدور الحالي</div><div class="title-font" style="font-size:1.8rem; line-height:1; color:var(--primary)">${activeP} ${isBot(activeP)?'🤖':''}</div></div>
+  </div>`;
+
+  if (phase === 'pick_hint') {
+    if(ME.isAdmin && isBot(activeP)) { setTimeout(() => pickHintLogic(0), 1000); } 
+    if(isMe && _room.timerDur == null) setGameTimer(30); 
+
+    html += isMe ? renderTimerBox() : '<div class="waiting-box"><div class="spinner"></div><div style="font-weight:800;">جاري اختيار التلميح...</div></div>';
+    
+    html += `<div class="card"><div class="card-title title-font" style="text-align:center;">المصطلح: <span style="color:var(--accent)">${q.term}</span></div><div style="text-align:center; color:var(--text-muted); font-weight:800; margin-bottom:16px;">الفئة: ${q.cat}</div>`;
+    
+    if(isMe) {
+      q.hints.forEach((h, i) => {
+        html += `<div class="selectable-card" onclick="pickHintLogic(${i})"><div class="num">${i+1}</div><div class="txt">${h}</div></div>`;
+      });
+    } else {
+      html += `<div style="text-align:center; font-weight:800; color:var(--danger)">أنت لا ترى المصطلح، انتظر التلميح!</div>`;
+    }
+    html += `</div>`;
+    
+    $('gameContent').innerHTML = html;
+    if(isMe) startClientTimer(() => pickHintLogic(0)); 
+
+  } 
+  else if (phase === 'answering') {
+    if(ME.isAdmin && _room.timerDur == null) setGameTimer(_room.settings.time);
+    const hint = q.hints[_room.selectedHint || 0];
+    const myAns = _room.answers && _room.answers[encName(ME.name)];
+    
+    html += renderTimerBox();
+    html += `<div class="hint-box"><div class="eyebrow" style="color:#d97706">التلميح المختار</div><div class="hint-text">${hint}</div></div>`;
+    
+    if(isMe) {
+      html += `<div class="card" style="text-align:center"><div class="emoji-icon">🍿</div><div class="title-font" style="font-size:1.5rem">تفرج على أصحابك وهم يحاولون!</div></div>`;
+    } else if (myAns) {
+      html += `<div class="card" style="text-align:center; border-color:var(--success)"><div class="emoji-icon">😎</div><div class="title-font" style="font-size:1.5rem; color:var(--success)">تم تسجيل إجابتك</div></div>`;
+    } else {
+      html += `<div class="card">
+        <div class="card-title title-font" style="text-align:center;">ما هو المصطلح؟ 🕵️</div>
+        <input class="inp" id="ansInp" placeholder="اكتب إجابتك هنا..." onkeypress="if(event.key==='Enter')submitAnswer()">
+        <button class="btn-primary" style="margin-top:16px;" onclick="submitAnswer()">تأكيد 🚀</button>
+      </div>`;
+    }
+    $('gameContent').innerHTML = html;
+    startClientTimer(endAnsweringPhase);
+  }
+  else if (phase === 'voting') {
+    if(ME.isAdmin && _room.timerDur == null) setGameTimer(30); 
+    const myVote = _room.votes && _room.votes[encName(ME.name)];
+    const opts = _room.voteOptions ||[];
+
+    html += renderTimerBox();
+    html += `<div class="hint-box" style="padding:10px;"><div class="hint-text" style="font-size:1rem">${q.hints[_room.selectedHint || 0]}</div></div>`;
+
+    if(isMe) {
+       html += `<div class="card" style="text-align:center"><div class="title-font" style="font-size:1.5rem">اللاعبون يصوتون الآن ⚖️</div></div>`;
+    } else if (myVote) {
+       html += `<div class="card" style="text-align:center; border-color:var(--success)"><div class="title-font" style="font-size:1.5rem; color:var(--success)">تم التصويت ✓</div></div>`;
+    } else {
+       html += `<div class="card"><div class="card-title title-font" style="text-align:center;">أين الإجابة الصحيحة؟ 🤔</div>`;
+       opts.forEach(opt => {
+         html += `<div class="selectable-card" onclick="castVote('${opt.id}')" style="justify-content:center"><div class="txt" style="text-align:center; font-size:1.2rem">${opt.text}</div></div>`;
+       });
+       html += `</div>`;
+    }
+    $('gameContent').innerHTML = html;
+    startClientTimer(endVotingPhase);
+  }
+}
+
+function pickHintLogic(idx) {
+  if(!ME.isAdmin && getActivePlayer() !== ME.name) return;
+  DB.ref('tlm3_room').update({ phase: 'answering', selectedHint: idx, answers: {}, realStartTime: null, timerDur: null });
+}
+
+function submitAnswer() {
+  const v = $('ansInp').value.trim(); if(!v) return;
+  const q = _room.currentQ;
+  const isCorrect = v.replace(/\s/g,'') === q.term.replace(/\s/g,'');
+  
+  if (isCorrect && !_room.answers[encName(ME.name)]?.decoy) {
+    $('gameContent').innerHTML = `<div class="card" style="border-color:var(--success); text-align:center;">
+      <div class="emoji-icon">🎯</div><div class="title-font" style="font-size:1.8rem; color:var(--success)">إجابة صحيحة!</div>
+      <p style="font-weight:800; margin:10px 0;">الآن اكتب إجابة خاطئة لتخدع البقية:</p>
+      <input class="inp" id="decoyInp" placeholder="إجابة تضليلية...">
+      <button class="btn-primary" style="margin-top:16px;" onclick="submitDecoy()">إرسال التضليل 🎭</button>
+    </div>`;
+  } else {
+    DB.ref(`tlm3_room/answers/${encName(ME.name)}`).set({ text: v, isCorrect: false, name: ME.name });
+    renderGamePhase(); checkAllAnswered();
+  }
+}
+
+function submitDecoy() {
+  const d = $('decoyInp').value.trim(); if(!d) return;
+  DB.ref(`tlm3_room/answers/${encName(ME.name)}`).set({ text: d, isCorrect: true, decoy: d, name: ME.name });
+  renderGamePhase(); checkAllAnswered();
+}
+
+function checkAllAnswered() {
+  if(!ME.isAdmin) return;
+  const humans = (_room.turnOrder ||[]).filter(p => !isBot(p) && p !== getActivePlayer());
+  const ansCount = Object.keys(_room.answers||{}).filter(k => !isBot(k)).length;
+  if(ansCount >= humans.length) endAnsweringPhase();
+}
+
+function endAnsweringPhase() {
+  clearInterval(_timerInt);
+  if(!ME.isAdmin) return;
+  
+  const q = _room.currentQ;
+  let mapMap = {}; 
+  mapMap[q.term.trim()] = { text: q.term, owners: ['__real__'] };
+
+  Object.values(_room.answers||{}).forEach(ans => {
+    let t = ans.decoy || ans.text;
+    if(t && t.trim() !== q.term.trim()) {
+      let key = t.trim(); 
+      if(!mapMap[key]) mapMap[key] = { text: t.trim(), owners:[] };
+      mapMap[key].owners.push(ans.name);
+    }
+  });
+
+  let finalOpts = shuf(Object.values(mapMap)).map((o,i) => ({ id: i, text: o.text, owners: o.owners }));
+  DB.ref('tlm3_room').update({ phase: 'voting', voteOptions: finalOpts, realStartTime: null, timerDur: null });
+}
+
+function castVote(optId) {
+  DB.ref(`tlm3_room/votes/${encName(ME.name)}`).set({ optId });
+  renderGamePhase();
+}
+
+function endVotingPhase() {
+  clearInterval(_timerInt);
+  if(!ME.isAdmin) return;
+  
+  const activeP = getActivePlayer();
+  const votes = _room.votes || {};
+  const opts = _room.voteOptions || [];
+  let roundScores = {}; (_room.turnOrder ||[]).forEach(p => roundScores[p]=0);
+  
+  let correctVoters = 0;
+
+  Object.entries(votes).forEach(([voterEnc, v]) => {
+    const pickedOpt = opts.find(o => o.id == v.optId);
+    if(!pickedOpt) return;
+    
+    // استخراج اسم المصوت الحقيقي من المفتاح (لأن Object.entries ترجع المفاتيح مشفرة)
+    const voter = decodeURIComponent(voterEnc);
+
+    if(pickedOpt.owners.includes('__real__')) {
+      if (roundScores[voter] !== undefined) roundScores[voter] += 2; 
+      correctVoters++;
+    } else {
+      pickedOpt.owners.forEach(owner => {
+         if(roundScores[owner] !== undefined) roundScores[owner] += 1;
+      });
+    }
+  });
+
+  if(correctVoters === 0) roundScores[activeP] += 4;
+  else if(correctVoters === 1) roundScores[activeP] += 3;
+  else if(correctVoters <= 2) roundScores[activeP] += 1;
+
+  let newScores = Object.assign({}, _room.scores);
+  Object.keys(roundScores).forEach(k => newScores[k] += roundScores[k]);
+
+  DB.ref('tlm3_room').update({ phase: 'round_result', roundScores, scores: newScores });
+}
+
+function renderResult() {
+  navPage('pLeader');
+  const rPts = _room.roundScores || {};
+  const sorted = [...(_room.turnOrder||[])].sort((a,b) => (_room.scores[b]||0) - (_room.scores[a]||0));
+  
+  $('leaderRoundTxt').textContent = `نتائج الجولة ${(_room.currentTurn||0) + 1}`;
+  
+  let html = '';
+  sorted.forEach((p, i) => {
+    const pt = rPts[p]||0;
+    html += `<div class="player-row ${i===0?'top':''}">
+      <div style="font-size:1.5rem; width:24px; text-align:center;">${i===0?'🥇':i===1?'🥈':i===2?'🥉':''}</div>
+      ${getAvatar(p, 44)}
+      <div style="flex:1; font-weight:800; font-size:1.1rem">${p} <span style="font-size:0.8rem; color:var(--text-muted)">(${_room.scores[p]||0})</span></div>
+      ${pt > 0 ? `<div style="color:var(--success); font-weight:900; font-size:1.2rem; background:#dcfce7; padding:4px 12px; border-radius:12px;">+${pt}</div>` : ''}
+    </div>`;
+  });
+  $('leaderContent').innerHTML = html;
+
+  if(ME.isAdmin) {
+    show('leaderAdminBtns'); hide('leaderPlayerWait');
+    const isLast = ((_room.currentTurn||0) + 1) >= _room.totalTurns;
+    $('btnNextTurn').textContent = isLast ? '🏆 عرض البطل' : 'الجولة التالية ▶️';
+  } else {
+    hide('leaderAdminBtns'); show('leaderPlayerWait', true);
+  }
+}
+
+function nextTurn() {
+  const next = (_room.currentTurn||0) + 1;
+  if (next >= _room.totalTurns) {
+    alert('انتهت اللعبة!');
+    DB.ref('tlm3_room').remove(); navHome();
+  } else {
+    const q = QB[Math.floor(Math.random() * QB.length)];
+    DB.ref('tlm3_room').update({ phase: 'pick_hint', currentTurn: next, currentQ: q, answers: null, votes: null, roundScores: null, realStartTime: null, timerDur: null });
+  }
+}
+</script>
+</body>
+</html>
