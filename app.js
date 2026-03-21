@@ -190,9 +190,10 @@ function goStep2() {
   sh($('lstep2')); hn($('lstep1'));
   // Then check Firebase in background for returning user
   DB.ref('tlm3_profiles/'+encName(name)).once('value').then(function(snap) {
-    if(snap.exists() && snap.val().expires > Date.now()) {
+    if(snap.exists()) {
       const p=snap.val();
-      if(p.photo){ ME.photo=p.photo; PHOTOS[name]=p.photo;
+      const pExp = p.photoExpires || p.expires || 0;
+      if(pExp > Date.now() && p.photo){ ME.photo=p.photo; PHOTOS[name]=p.photo;
         $('photoPreview').innerHTML='<img src="'+p.photo+'" class="photo-prev"><div style="font-size:.78rem;color:var(--grn);font-weight:700;margin-top:4px">✅ صورتك محفوظة — يمكنك تغييرها</div>';
       }
     }
@@ -206,8 +207,8 @@ function doLogin() {
   ME.name=name; ME.isAdmin=(name===ADMIN);
   ls('tlm_name',name);
   if(ME.photo) PHOTOS[name]=ME.photo;
-  // Save profile 24h
-  var profile={name:name, ts:Date.now(), expires:Date.now()+24*60*60*1000};
+  // Save profile 10s, photo 24h
+  var profile={name:name, ts:Date.now(), expires:Date.now()+10*1000, photoExpires:Date.now()+24*60*60*1000};
   if(ME.photo) profile.photo=ME.photo;
   DB.ref('tlm3_profiles/'+encName(name)).set(profile);
   _startSession();
@@ -485,11 +486,15 @@ function createRoom() {
   var roundEl=$('lRounds'); var roundBtn=roundEl&&roundEl.querySelector('.tag.on');
   var rounds=parseInt(roundBtn&&roundBtn.textContent)||2;
   var pk=encName(ME.name);
-  DB.ref('tlm3_room').set({
+  var roomRef = DB.ref('tlm3_room');
+  roomRef.set({
     host:ME.name, phase:'lobby',
     settings:{cats:cats, time:time, rounds:rounds},
     players:{[pk]:{name:ME.name, joinedAt:Date.now()}}
-  }).then(function(){ toast('تم إنشاء الغرفة ✓','ok'); });
+  }).then(function(){
+    roomRef.onDisconnect().remove();
+    toast('تم إنشاء الغرفة ✓','ok');
+  });
 }
 
 function closeRoom() {
@@ -955,10 +960,12 @@ window.addEventListener('load', function(){
   var saved=localStorage.getItem('tlm_name');
   if(saved){
     DB.ref('tlm3_profiles/'+encName(saved)).once('value').then(function(snap){
-      if(snap.exists()&&snap.val().expires>Date.now()){
-        var p=snap.val();
+      var v=snap.val();
+      if(snap.exists() && v && v.expires > Date.now()){
+        var p=v;
         ME.name=saved; ME.isAdmin=(saved===ADMIN);
-        if(p.photo){ ME.photo=p.photo; PHOTOS[saved]=p.photo; }
+        var pExp = p.photoExpires || p.expires || 0;
+        if(pExp > Date.now() && p.photo){ ME.photo=p.photo; PHOTOS[saved]=p.photo; }
         _startSession();
       } else {
         var ni=$('nameInp'); if(ni) ni.value=saved;
