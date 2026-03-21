@@ -187,14 +187,16 @@ function goStep2() {
   const nameEl=$('nameInp');
   const name=(nameEl&&nameEl.value.trim())||'';
   if(!name||name.length<2){ toast('اكتب اسمك (حرفان على الأقل)','err'); return; }
-  // Check Firebase for saved profile within 24h
+  // Show step 2 immediately
+  sh($('lstep2')); hn($('lstep1'));
+  // Then check Firebase in background for returning user
   DB.ref('tlm3_profiles/'+encName(name)).once('value').then(function(snap) {
     if(snap.exists() && snap.val().expires > Date.now()) {
       const p=snap.val();
-      if(p.photo){ ME.photo=p.photo; PHOTOS[name]=p.photo; }
-      $('photoPreview').innerHTML='<img src="'+(p.photo||'')+'" class="photo-prev"><div style="font-size:.78rem;color:var(--grn);font-weight:700;margin-top:4px">✅ صورتك محفوظة</div>';
+      if(p.photo){ ME.photo=p.photo; PHOTOS[name]=p.photo;
+        $('photoPreview').innerHTML='<img src="'+p.photo+'" class="photo-prev"><div style="font-size:.78rem;color:var(--grn);font-weight:700;margin-top:4px">✅ صورتك محفوظة — يمكنك تغييرها</div>';
+      }
     }
-    sh($('lstep2')); hn($('lstep1'));
   });
 }
 
