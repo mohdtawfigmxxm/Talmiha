@@ -694,6 +694,7 @@ function listenRoom(){
   _roomRef = DB.ref('tlm_room');
   _roomRef.on('value', snap=>{
     const wasNull = !_room;
+    const prevRoom = _room;
     _room = snap.exists() ? snap.val() : null;
 
     // Game is active — go to game screen
@@ -709,9 +710,11 @@ function listenRoom(){
       if(onHome || wasNull) navLobby();
     }
 
-    // Re-render lobby if visible
+    // Re-render lobby if visible - ALWAYS re-render when room changes
     const lobby=$('sLobby');
-    if(lobby && !lobby.classList.contains('hidden')) renderLobby();
+    if(lobby && !lobby.classList.contains('hidden')) {
+      renderLobby();
+    }
 
     // Room disappeared → go home
     if(!_room){
@@ -821,18 +824,23 @@ function renderLobby(){
     if(leaveBtn){leaveBtn.textContent='🚪 مغادرة الغرفة';leaveBtn.onclick=leaveRoom;}
   }
 
-  // Players list
+  // Players list - FIXED: Ensure we always show all players
   const pl=$('playersList');
   if(pl){
     const players=_room.players?Object.values(_room.players):[];
+    console.log('Rendering players:', players.length, 'players:', players.map(p=>p.name).join(', '));
     pl.innerHTML=players.length
-      ?players.sort((a,b)=>a.joinedAt-b.joinedAt).map(p=>`
+      ?players.sort((a,b)=>a.joinedAt-b.joinedAt).map(p=>{
+        const isHost=p.name===_room.host;
+        const isMe=p.name===CU.name;
+        return`
         <div class="plRow">
           ${pImg(p.name,36)}
-          <span class="plName">${san(p.name)}</span>
-          <span class="plStatus ${p.name===_room.host?'host':'ready'}">${p.name===_room.host?'مضيف 👑':'جاهز ✓'}</span>
+          <span class="plName">${san(p.name)}${isMe?' (أنت)':''}</span>
+          <span class="plStatus ${isHost?'host':'ready'}">${isHost?'مضيف 👑':'جاهز ✓'}</span>
           ${CU.isAdmin&&p.name!==CU.name?`<button onclick="kickPlayer('${p.name.replace(/'/g,"\\'")}');" style="padding:3px 8px;font-size:.65rem;background:#fee2e2;border:none;border-radius:8px;color:#b91c1c;cursor:pointer;font-family:inherit">إخراج</button>`:''}
-        </div>`).join('')
+        </div>`;
+      }).join('')
       :'<div style="font-size:.82rem;color:var(--t3);text-align:center;padding:10px">لا يوجد لاعبون بعد</div>';
   }
 }
@@ -1007,14 +1015,15 @@ function renderAnswering(){
   const order=_room.turnOrder||[];
   const turnPlayer=order[turn%order.length];
   const isMyTurn=turnPlayer===CU.name;
-  const myAns=_room.answers&&_room.answers[CU.name];
+  const pk=fbKey(CU.name);
+  const myAns=_room.answers&&_room.answers[pk];
   const settings=_room.settings||{time:60};
   const elapsed=_room.answerStart?Math.floor((Date.now()-_room.answerStart)/1000):0;
   const timeLeft=Math.max(0,settings.time-elapsed);
   const pct=(timeLeft/settings.time)*100;
   const warnClass=timeLeft<=10?'danger':timeLeft<=20?'warn':'';
   const answered=_room.answers?Object.keys(_room.answers):[];
-  const waiting=order.filter(p=>p!==turnPlayer&&!_room.answers[p]);
+  const waiting=order.filter(p=>p!==turnPlayer&&!_room.answers[fbKey(p)]);
 
   return`
     <div style="animation:fup .28s ease both">
@@ -1363,7 +1372,7 @@ function closeRoom(){
 // ══ STATS ══
 function renderStats(){
   const el=$('statsList');if(!el)return;
-  const allP=[...P_NAMES,...(lg('ndl_perm_names')||[])];
+  const allP=[...P_NAMES,...(lg('tlm_perm_names')||[])];
   const rows=allP.map(p=>{
     const st=lg(`tlm_stats_${p}`)||{played:0,wins:0,totalPts:0};
     return{p,st};
