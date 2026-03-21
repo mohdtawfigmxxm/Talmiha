@@ -68,7 +68,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 /* ══ عناصر اللعبة ══ */
 .timer-box { background: var(--card); border-radius: 20px; padding: 16px; text-align: center; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.05); border: 2px solid var(--border); }
-.timer-num { font-size: 3.5rem; color: var(--primary); line-height: 1; margin-bottom: 8px; transition: color 0.3s; }
+.timer-num { font-size: 3.5rem; color: var(--primary); line-height: 1; margin-bottom: 8px; transition: color 0.3s; font-variant-numeric: tabular-nums; min-width: 80px; display: inline-block; text-align: center; }
 .timer-num.danger { color: var(--danger); animation: pulse 1s infinite; }
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 .timer-bar-bg { width: 100%; height: 12px; background: var(--bg); border-radius: 10px; overflow: hidden; }
@@ -334,9 +334,10 @@ let _room = null;
 let _roomRef = null; 
 let _timerInt = null; 
 let _presenceRef = null;
+let _lastRenderedPhase = null; // الخوارزمية: لمنع مسح الشاشة أثناء الكتابة
+let _lastRenderedState = null; 
 
 let _crImg = null, _crOX = 0, _crOY = 0, _crDrag = null, _crBase = 1;
-
 const $ = id => document.getElementById(id);
 const hide = id => { if($(id)) $(id).classList.add('hidden'); };
 const show = (id, flex=false) => { if($(id)) { $(id).classList.remove('hidden'); if(flex) $(id).style.display='flex'; else $(id).style.display=''; } };
@@ -659,7 +660,7 @@ function renderTimerBox() {
     <div class="timer-box">
       <div class="timer-num title-font" id="tNum">--</div>
       <div class="timer-bar-bg"><div class="timer-bar-fill" id="tFill" style="width:100%"></div></div>
-      ${_room.paused ? '<div style="color:var(--danger); font-weight:800; margin-top:8px; animation:pulse 1s infinite">⏸️ اللعبة متوقفة مؤقتاً</div>' : ''}
+      <div id="pauseWarn" style="color:var(--danger); font-weight:800; margin-top:8px; animation:pulse 1s infinite; display:${_room.paused ? 'block' : 'none'}">⏸️ اللعبة متوقفة مؤقتاً</div>
     </div>
   `;
 }
@@ -704,12 +705,34 @@ function startClientTimer(onEndAdminAction) {
 function renderGamePhase() {
   navPage('pGame');
   if(ME.isAdmin) show('gameAdminControls', true); else hide('gameAdminControls');
-  $('btnPause').textContent = _room.paused ? '▶️ استئناف' : '⏸️ إيقاف مؤقت';
+  if($('btnPause')) $('btnPause').textContent = _room.paused ? '▶️ استئناف' : '⏸️ إيقاف مؤقت';
 
   const phase = _room.phase;
   const activeP = getActivePlayer();
   const isMe = activeP === ME.name;
   const q = _room.currentQ;
+
+  // --- الخوارزمية الذكية لمنع الاهتزاز ومسح الإجابات (Anti-Flicker) ---
+  let myState = '';
+  if (phase === 'answering') {
+    const ans = _room.answers && _room.answers[encName(ME.name)];
+    myState = ans ? (ans.decoy ? 'decoy_done' : 'ans_done') : 'typing';
+  } else if (phase === 'voting') {
+    myState = _room.votes && _room.votes[encName(ME.name)] ? 'voted' : 'waiting_vote';
+  }
+
+  // إذا كانت نفس المرحلة ولم تتغير حالة اللاعب.. لا تمسح الشاشة! حدث المؤقت فقط.
+  if (_lastRenderedPhase === phase && _lastRenderedState === myState) {
+     if($('pauseWarn')) $('pauseWarn').style.display = _room.paused ? 'block' : 'none';
+     let endAction = phase === 'pick_hint' ? () => pickHintLogic(0) : (phase === 'answering' ? endAnsweringPhase : endVotingPhase);
+     startClientTimer(endAction);
+     return; 
+  }
+
+  _lastRenderedPhase = phase;
+  _lastRenderedState = myState;
+  // -------------------------------------------------------------
+
   let html = '';
 
   html += `<div style="display:flex; align-items:center; gap:16px; margin-bottom:20px; background:white; padding:16px; border-radius:20px; border:2px solid var(--primary);">
