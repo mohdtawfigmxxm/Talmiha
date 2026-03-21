@@ -1,5 +1,4 @@
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-<script>
+
 firebase.initializeApp({
   apiKey:"AIzaSyB9mj2PkgVpX6M_BW1cUMaymY2VWA4pwqg",
   authDomain:"dogs-padel.firebaseapp.com",
@@ -965,5 +964,3 @@ window.addEventListener('load', function(){
     showPage('pLogin'); goStep1();
   }
 });
-</script>
-</body>
