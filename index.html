@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>تلميحة 💡</title>
+<!-- إضافة خطوط مبهجة للألعاب -->
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* ══ الألوان والمتغيرات ══ */
+:root {
+  --bg: #f8faff; /* لون خلفية فاتح ومبهج */
+  --card: #ffffff;
+  --primary: #6366f1; /* أزرق بنفسجي مبهج */
+  --primary-dark: #4f46e5;
+  --secondary: #ecfdf5; /* أخضر فاتح */
+  --accent: #f59e0b; /* برتقالي/ذهبي مرح */
+  --text-dark: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --danger: #ef4444;
+  --success: #10b981;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'Tajawal', sans-serif;
+  background-color: var(--bg);
+  color: var(--text-dark);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* الخطوط للعناوين */
+.title-font { font-family: 'Lalezar', cursive; letter-spacing: 0.5px; }
+
+.hidden { display: none !important; }
+
+/* ══ الأزرار ══ */
+button {
+  font-family: 'Tajawal', sans-serif;
+  cursor: pointer;
+  border: none;
+  border-radius: 16px;
+  font-weight: 800;
+  font-size: 1rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+button:active { transform: scale(0.95); }
+button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  padding: 14px 20px;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+.btn-secondary {
+  background: white;
+  color: var(--primary);
+  border: 2px solid var(--border);
+  padding: 12px 20px;
+  width: 100%;
+}
+.btn-secondary:active { background: var(--bg); border-color: var(--primary); }
+.btn-success { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 14px 20px; width: 100%; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+.btn-danger { background: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 12px; font-size: 0.9rem; }
+
+/* ══ البطاقات (Cards) ══ */
+.card {
+  background: var(--card);
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(148, 163, 184, 0.1);
+  border: 2px solid #fff;
+}
+.eyebrow { font-size: 0.8rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 1px; }
+.card-title { font-size: 1.8rem; color: var(--text-dark); margin-bottom: 16px; line-height: 1.2; }
+
+/* ══ المدخلات (Inputs) ══ */
+.inp {
+  width: 100%; padding: 14px 16px; border: 2px solid var(--border); border-radius: 16px;
+  font-size: 1.1rem; font-family: inherit; background: var(--bg); color: var(--text-dark); outline: none; transition: 0.2s; font-weight: 700;
+}
+.inp:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15); }
+
+/* Tags */
+.tags-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.tag { padding: 8px 16px; border: 2px solid var(--border); border-radius: 20px; font-size: 0.9rem; font-weight: 700; color: var(--text-muted); background: white; cursor: pointer; transition: 0.2s; }
+.tag.active { background: var(--primary); border-color: var(--primary); color: white; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(99,102,241,0.2); }
+
+/* ══ الشريط العلوي (Top Bar) ══ */
+.top-bar {
+  position: sticky; top: 0; z-index: 90; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
+  padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border);
+}
+.brand { font-size: 1.5rem; color: var(--accent); text-shadow: 1px 1px 0px rgba(0,0,0,0.1); }
+
+/* الشريط العلوي للاعبين (Presence Bar) */
+.presence-bar {
+  display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; margin-bottom: 16px;
+  scrollbar-width: none;
+}
+.presence-bar::-webkit-scrollbar { display: none; }
+.p-avatar {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 50px;
+}
+.p-avatar img { width: 44px; height: 44px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); object-fit: cover; }
+.p-avatar .status { position: absolute; top: 0; right: 0; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; }
+.p-avatar .status.online { background: var(--success); }
+.p-avatar .status.offline { background: var(--text-muted); }
+.p-avatar span { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50px; text-align: center;}
+
+/* ══ عناصر اللعبة ══ */
+.timer-box {
+  background: var(--card); border-radius: 20px; padding: 16px; text-align: center; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.05); border: 2px solid var(--border);
+}
+.timer-num { font-size: 3.5rem; color: var(--primary); line-height: 1; margin-bottom: 8px; transition: color 0.3s; }
+.timer-num.danger { color: var(--danger); animation: pulse 1s infinite; }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+.timer-bar-bg { width: 100%; height: 12px; background: var(--bg); border-radius: 10px; overflow: hidden; }
+.timer-bar-fill { height: 100%; background: var(--success); border-radius: 10px; transition: width 1s linear, background-color 0.3s; }
+.timer-bar-fill.danger { background: var(--danger); }
+
+.hint-box { background: #fef3c7; border: 2px solid #fde68a; border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 16px; }
+.hint-text { font-size: 1.2rem; font-weight: 800; color: #92400e; }
+
+.selectable-card {
+  background: white; border: 2px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px;
+}
+.selectable-card:active { transform: scale(0.98); border-color: var(--primary); background: #eef2ff; }
+.selectable-card .num { font-size: 1.5rem; color: var(--accent); width: 30px; text-align: center; }
+.selectable-card .txt { font-size: 1rem; font-weight: 700; color: var(--text-dark); flex: 1; }
+
+.player-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border: 1px solid var(--border); border-radius: 16px; margin-bottom: 8px; }
+.player-row.top { border: 2px solid #fde68a; background: #fffbeb; }
+.player-row img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--primary); }
+.score-badge { font-size: 1.4rem; color: var(--primary); min-width: 40px; text-align: center; }
+
+/* ══ التنبيهات (Toasts) ══ */
+.toast-container { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast { background: var(--text-dark); color: white; padding: 10px 20px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ══ قص الصورة ══ */
+.photo-area { border: 3px dashed var(--border); border-radius: 24px; padding: 30px; text-align: center; cursor: pointer; background: white; transition: 0.2s; }
+.photo-area:hover { border-color: var(--primary); background: #eef2ff; }
+#crOv { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+#crWrap { position: relative; width: 280px; height: 280px; border-radius: 50%; overflow: hidden; border: 4px solid var(--accent); touch-action: none; background: #000; }
+#crCanvas { position: absolute; top: 0; left: 0; }
+
+/* ══ حاوية الصفحات ══ */
+.page { max-width: 600px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
+.emoji-icon { font-size: 3rem; margin-bottom: 12px; display: inline-block; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+/* ══ شاشة الانتظار ══ */
+.waiting-box { text-align: center; padding: 40px 20px; }
+.spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid rgba(99, 102, 241, 0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* شارة الأدمن */
+.admin-badge { background: #fee2e2; color: #b91c1c; font-size: 0.6rem; padding: 2px 6px; border-radius: 8px; font-family: 'Tajawal', sans-serif; font-weight: 800; vertical-align: middle; margin-right: 4px; }
+</style>
+</head>
+<body>
+
+<div class="toast-container" id="tc"></div>
+<input type="file" id="fileInp" accept="image/*" style="display:none" onchange="onFilePick(event)">
+
+<!-- نافذة قص الصورة -->
+<div id="crOv" class="hidden">
+  <div class="title-font" style="color:white; font-size:1.5rem; margin-bottom:16px;">اضبط صورتك 📸</div>
+  <div style="color:#cbd5e1; font-size:0.9rem; margin-bottom:16px; font-weight:700;">اسحب بإصبعك لتحريك الصورة</div>
+  <div id="crWrap"><canvas id="crCanvas" width="280" height="280"></canvas></div>
+  <div style="margin-top:20px; width:280px;">
+    <div style="color:white; font-weight:700; font-size:0.8rem; text-align:right;">🔍 تكبير وتصغير</div>
+    <input type="range" id="crZoom" min="0.5" max="3" step="0.05" value="1" style="width:100%; margin:10px 0; accent-color:var(--accent);" oninput="crDraw()">
+  </div>
+  <div style="display:flex; gap:12px; margin-top:20px; width:280px;">
+    <button class="btn-secondary" onclick="crCancel()" style="border:none; background:rgba(255,255,255,0.1); color:white;">إلغاء</button>
+    <button class="btn-primary" onclick="crConfirm()">تأكيد ✓</button>
+  </div>
+</div>
+
+<div id="app">
+  <!-- الشريط العلوي العام -->
+  <div class="top-bar">
+    <div class="brand title-font">💡 تلميحة</div>
+    <div id="topUser" style="display:flex; align-items:center; gap:8px; font-weight:800; font-size:0.9rem;"></div>
+  </div>
+
+  <!-- ══ صفحة الدخول ══ -->
+  <div id="pLogin" class="page">
+    <div style="text-align:center; padding:20px 0 30px;">
+      <span class="emoji-icon">🎭</span>
+      <h1 class="title-font" style="font-size:3rem; color:var(--primary); line-height:1;">تلميحة</h1>
+      <p style="font-weight:700; color:var(--text-muted); font-size:1.1rem; margin-top:8px;">لعبة الخداع والذكاء لأصدقائك</p>
+    </div>
+    
+    <div class="card" id="lstep1">
+      <div class="eyebrow">الخطوة الأولى</div>
+      <div class="card-title title-font">ما هو اسمك؟ 🤔</div>
+      <input class="inp" id="nameInp" type="text" placeholder="اكتب اسمك للعب..." maxlength="15" autocomplete="off" style="margin-bottom:16px" onkeypress="if(event.key==='Enter')goStep2()">
+      <button class="btn-primary" onclick="goStep2()">التالي 🚀</button>
+    </div>
+
+    <div class="card hidden" id="lstep2">
+      <div class="eyebrow">الخطوة الأخيرة</div>
+      <div class="card-title title-font">اختر صورتك 📸</div>
+      <div class="photo-area" onclick="document.getElementById('fileInp').click()" id="photoArea">
+        <div id="photoPreview">
+          <div style="font-size:3rem; margin-bottom:8px">👤</div>
+          <div style="font-size:1rem; font-weight:800; color:var(--primary)">اضغط لرفع صورة من جهازك</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; margin-top:16px;">
+        <button class="btn-secondary" onclick="goStep1()" style="width:auto; padding:12px;">رجوع</button>
+        <button class="btn-primary" onclick="doLogin()">دخول للعبة 🎮</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ الشاشة الرئيسية ══ -->
+  <div id="pHome" class="page hidden">
+    <!-- شريط اللاعبين المتصلين -->
+    <div style="font-size:0.8rem; font-weight:800; color:var(--text-muted); margin-bottom:8px;">المتواجدون الآن:</div>
+    <div class="presence-bar" id="homePresence"></div>
+
+    <div class="card">
+      <div class="eyebrow" id="greetingTime">مرحباً بك</div>
+      <div class="card-title title-font" style="font-size:2.2rem;">يا <span id="homeNameTxt" style="color:var(--primary)"></span> 👋</div>
+      
+      <!-- قسم الغرفة النشطة للجميع -->
+      <div id="activeRoomSect" style="background:var(--bg); border:2px solid var(--border); border-radius:20px; padding:20px; text-align:center; margin-bottom:20px;">
+        <div class="spinner" id="roomSpinner"></div>
+        <div id="roomStatusTxt" style="font-weight:800; color:var(--text-muted); font-size:1.1rem;">جاري البحث عن غرف...</div>
+        <div id="joinRoomBtnWrap" class="hidden" style="margin-top:16px;">
+          <button class="btn-success" onclick="joinRoom()">انضمام للغرفة 🎮</button>
+        </div>
+      </div>
+
+      <!-- أزرار الأدمن -->
+      <div id="adminBtns" class="hidden">
+        <div style="border-top:2px dashed var(--border); margin:20px 0; position:relative;">
+          <span style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); background:var(--card); padding:0 10px; font-weight:800; font-size:0.8rem; color:var(--primary);">أدوات المشرف</span>
+        </div>
+        <button class="btn-primary" onclick="showCreateRoom()" style="margin-bottom:12px;">✨ إنشاء غرفة جديدة</button>
+        <button class="btn-secondary" onclick="navSettings()">⚙️ إعدادات الأسئلة</button>
+      </div>
+      
+      <button class="btn-secondary" onclick="doLogout()" style="margin-top:12px; border-color:transparent; color:var(--danger); background:#fee2e2;">🚪 تسجيل خروج</button>
+    </div>
+  </div>
+
+  <!-- ══ إنشاء الغرفة (للأدمن) ══ -->
+  <div id="pCreateRoom" class="page hidden">
+    <div class="card">
+      <div class="eyebrow">إعدادات اللعبة</div>
+      <div class="card-title title-font">إنشاء غرفة جديدة 🛠️</div>
+      
+      <div style="margin-bottom:20px;">
+        <label style="font-weight:800; display:block; margin-bottom:8px;">اسم الغرفة:</label>
+        <input class="inp" id="rName" value="غرفة التحدي 🏆">
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label style="font-weight:800; display:block; margin-bottom:8px;">الفئات (اختر ما تريد):</label>
+        <div class="tags-wrap" id="rCats">
+          <button class="tag active" onclick="this.classList.toggle('active')">معلومات عامة</button>
+          <button class="tag active" onclick="this.classList.toggle('active')">دينية</button>
+          <button class="tag active" onclick="this.classList.toggle('active')">رياضة</button>
+          <button class="tag active" onclick="this.classList.toggle('active')">جغرافيا</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label style="font-weight:800; display:block; margin-bottom:8px;">الوقت لكل دور (ثواني):</label>
+        <div class="tags-wrap" id="rTime">
+          <button class="tag" onclick="selTag(this)">30</button>
+          <button class="tag active" onclick="selTag(this)">60</button>
+          <button class="tag" onclick="selTag(this)">90</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <label style="font-weight:800; display:block; margin-bottom:8px;">عدد الجولات لكل لاعب:</label>
+        <div class="tags-wrap" id="rRounds">
+          <button class="tag" onclick="selTag(this)">1</button>
+          <button class="tag active" onclick="selTag(this)">2</button>
+          <button class="tag" onclick="selTag(this)">3</button>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:12px;">
+        <button class="btn-secondary" onclick="navHome()">إلغاء</button>
+        <button class="btn-primary" style="flex:2" onclick="createRoom()">إنشاء وفتح الغرفة 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ساحة الانتظار (Lobby) ══ -->
+  <div id="pLobby" class="page hidden">
+    <div class="card">
+      <div style="text-align:center; margin-bottom:20px;">
+        <div class="eyebrow">ساحة الانتظار</div>
+        <div class="card-title title-font" id="lobbyRoomName">غرفة اللعب</div>
+        <div style="font-size:0.9rem; font-weight:700; color:var(--text-muted);" id="lobbySettingsTxt"></div>
+      </div>
+
+      <div style="font-weight:800; margin-bottom:12px; border-bottom:2px solid var(--border); padding-bottom:8px;">اللاعبون الجاهزون (<span id="lobbyCount">0</span>)</div>
+      <div id="lobbyPlayers" style="margin-bottom:24px;"></div>
+
+      <div id="lobbyBotSect" class="hidden" style="margin-bottom:24px; background:var(--bg); padding:16px; border-radius:16px;">
+        <div style="font-weight:800; margin-bottom:8px; font-size:0.9rem;">إضافة بوتات (🤖):</div>
+        <div class="tags-wrap" id="lobbyBots"></div>
+      </div>
+
+      <div id="lobbyAdminBtns" class="hidden">
+        <button class="btn-success" onclick="startGame()" style="font-size:1.2rem; padding:16px;">ابدأ اللعبة الآن 🔥</button>
+        <button class="btn-danger" onclick="closeRoom()" style="width:100%; margin-top:12px;">حذف الغرفة</button>
+      </div>
+      <div id="lobbyPlayerBtns" class="hidden">
+        <div class="waiting-box" style="padding:10px;">
+          <div class="spinner" style="width:24px; height:24px; border-width:3px; margin-bottom:8px;"></div>
+          <div style="font-weight:800; color:var(--text-muted);">بانتظار المشرف لبدء اللعبة...</div>
+        </div>
+        <button class="btn-secondary" onclick="leaveRoom()">الخروج من الغرفة</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ساحة اللعب الرئيسية ══ -->
+  <div id="pGame" class="page hidden">
+    <!-- شريط اللاعبين أثناء اللعب -->
+    <div class="presence-bar" id="gamePresence" style="background:var(--card); border-radius:16px; padding:12px; margin-bottom:16px; border:2px solid var(--border);"></div>
+    
+    <!-- محتوى اللعبة الديناميكي -->
+    <div id="gameContent"></div>
+
+    <!-- أزرار تحكم الأدمن أثناء اللعب -->
+    <div id="gameAdminControls" class="hidden" style="margin-top:20px; border-top:2px dashed var(--border); padding-top:16px; display:flex; gap:8px;">
+      <button class="btn-secondary" id="btnPause" onclick="togglePause()" style="flex:1; font-size:0.9rem;">⏸️ إيقاف مؤقت</button>
+      <button class="btn-danger" onclick="closeRoom()" style="flex:1; border-radius:16px;">إنهاء الغرفة</button>
+    </div>
+  </div>
+
+  <!-- ══ لوحة المتصدرين ══ -->
+  <div id="pLeader" class="page hidden">
+    <div class="card">
+      <div style="text-align:center; margin-bottom:24px;">
+        <div class="emoji-icon">🏆</div>
+        <div class="card-title title-font">الترتيب الحالي</div>
+        <div class="eyebrow" id="leaderRoundTxt"></div>
+      </div>
+      <div id="leaderContent"></div>
+      
+      <div id="leaderAdminBtns" class="hidden" style="margin-top:24px;">
+        <button class="btn-primary" onclick="nextTurn()" id="btnNextTurn">التالي ▶️</button>
+      </div>
+      <div id="leaderPlayerWait" class="hidden waiting-box">
+        <div class="spinner" style="width:24px; height:24px; border-width:3px;"></div>
+        <div style="font-weight:800;">بانتظار المشرف للمتابعة...</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- نهاية التطبيق -->
+
+<!-- ══ المكتبات (Firebase) ══ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+<script>
+// إعدادات فايربيز
+firebase.initializeApp({
+  apiKey: "AIzaSyB9mj2PkgVpX6M_BW1cUMaymY2VWA4pwqg",
+  databaseURL: "https://dogs-padel-default-rtdb.firebaseio.com",
+  projectId: "dogs-padel"
+});
+const DB = firebase.database();
+
+// ══ الثوابت ══
+const ADMIN = 'محمد';
+const BOTS =['كليب','كلبون','سيمبا','رعد','مشمش'];
+const isBot = n => BOTS.includes(n);
+
+// الأسئلة الافتراضية المدمجة
+const QB =[
+  { term: 'ابن خلدون', cat: 'تاريخ', hints:['ولد في تونس','مؤسس علم الاجتماع','مؤلف المقدمة','عمل قاضياً بمصر','شرح دورة الحضارات'] },
+  { term: 'ثقب أسود', cat: 'فيزياء', hints:['جاذبيته تمنع الضوء','تنبأ به أينشتاين','حدوده تسمى أفق الحدث','صور لأول مرة 2019','كتلته هائلة جداً'] },
+  { term: 'الأمازون', cat: 'جغرافيا', hints:['نهر ضخم جداً','معظمه في البرازيل','يصب في المحيط الأطلسي','رئة الأرض','فيه آلاف أنواع الأسماك'] }
+];
+
+// ══ المتغيرات العامة (State) ══
+let ME = { name: '', isAdmin: false, photo: '' };
+let ALL_PHOTOS = {}; // تخزين صور جميع اللاعبين للعرض
+let _room = null;    // كائن الغرفة النشطة
+let _roomRef = null; // مراقب الغرفة
+let _timerInt = null; // مؤقت الشاشة
+let _presenceRef = null;
+
+// أدوات القص
+let _crImg = null, _crOX = 0, _crOY = 0, _crDrag = null, _crBase = 1;
+
+// ══ مساعدات ══
+const $ = id => document.getElementById(id);
+const hide = id => { if($(id)) $(id).classList.add('hidden'); };
+const show = (id, flex=false) => { if($(id)) { $(id).classList.remove('hidden'); if(flex) $(id).style.display='flex'; else $(id).style.display=''; } };
+const san = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuf = a => { for(let i=a.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+function toast(msg, type='success') {
+  const c = $('tc'), el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  if(type==='err') el.style.background = 'var(--danger)';
+  c.appendChild(el);
+  setTimeout(() => { el.style.animation = 'slideDown 0.3s reverse forwards'; setTimeout(()=>el.remove(),300); }, 2500);
+}
+
+function getAvatar(name, size=44) {
+  const photo = ALL_PHOTOS[name];
+  if (photo) return `<img src="${photo}" style="width:${size}px; height:${size}px;">`;
+  const colors =['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6'];
+  const col = colors[name.charCodeAt(0) % colors.length];
+  return `<div style="width:${size}px; height:${size}px; background:${col}; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-family:'Lalezar'; font-size:${size*0.5}px; border:3px solid white; box-shadow:0 2px 8px rgba(0,0,0,0.1)">${name[0]}</div>`;
+}
+
+// ══ تهيئة النظام ══
+window.onload = () => {
+  const savedName = localStorage.getItem('tlm_name');
+  if (savedName) {
+    // جلب البروفايل للتحقق من الصلاحية (24 ساعة)
+    DB.ref(`tlm3_profiles/${savedName}`).once('value', snap => {
+      const p = snap.val();
+      if (p && p.expires > Date.now()) {
+        ME.name = savedName; ME.isAdmin = (savedName === ADMIN);
+        if (p.photo) { ME.photo = p.photo; ALL_PHOTOS[savedName] = p.photo; }
+        startSession();
+      } else {
+        localStorage.removeItem('tlm_name');
+        navPage('pLogin');
+      }
+    });
+  } else {
+    navPage('pLogin');
+  }
+};
+
+function navPage(pageId) {['pLogin','pHome','pCreateRoom','pLobby','pGame','pLeader'].forEach(hide);
+  show(pageId);
+}
+
+// ══ تسجيل الدخول والصور ══
+function goStep1() { show('lstep1'); hide('lstep2'); }
+function goStep2() {
+  const n = $('nameInp').value.trim();
+  if(n.length < 2) return toast('اكتب اسماً من حرفين على الأقل', 'err');
+  // جلب الصورة القديمة إن وجدت
+  DB.ref(`tlm3_profiles/${n}`).once('value', snap => {
+    const p = snap.val();
+    if(p && p.expires > Date.now() && p.photo) {
+      ME.photo = p.photo; ALL_PHOTOS[n] = p.photo;
+      $('photoPreview').innerHTML = `<img src="${p.photo}" style="width:80px;height:80px;border-radius:50%;border:4px solid var(--primary);object-fit:cover;"><div style="font-weight:800; color:var(--success); margin-top:8px;">✅ صورتك محفوظة</div><div style="font-size:0.8rem; color:var(--text-muted)">اضغط لتغييرها</div>`;
+    }
+    hide('lstep1'); show('lstep2');
+  });
+}
+
+function doLogin() {
+  const n = $('nameInp').value.trim();
+  ME.name = n; ME.isAdmin = (n === ADMIN);
+  localStorage.setItem('tlm_name', n);
+  if(ME.photo) ALL_PHOTOS[n] = ME.photo;
+  
+  // حفظ البروفايل (الصورة مضغوطة مسبقاً) لمدة 24 ساعة
+  DB.ref(`tlm3_profiles/${n}`).set({ name: n, photo: ME.photo, ts: Date.now(), expires: Date.now() + 24*3600*1000 });
+  startSession();
+}
+
+function startSession() {
+  $('topUser').innerHTML = getAvatar(ME.name, 32) + `<span>${ME.name}</span>` + (ME.isAdmin ? '<span class="admin-badge">أدمن</span>' : '');
+  listenPresence();
+  listenRoom();
+  navHome();
+}
+
+function doLogout() {
+  if(_presenceRef) _presenceRef.remove();
+  ME = {name:'', isAdmin:false, photo:''};
+  localStorage.removeItem('tlm_name');
+  $('nameInp').value = '';
+  if(_roomRef) DB.ref('tlm3_room').off('value', _roomRef);
+  navPage('pLogin'); goStep1();
+}
+
+// ══ التواجد (Presence) ══
+function listenPresence() {
+  const ref = DB.ref(`tlm3_presence/${ME.name}`);
+  ref.set({ name: ME.name, photo: ME.photo, ts: Date.now() });
+  ref.onDisconnect().remove();
+  _presenceRef = ref;
+
+  DB.ref('tlm3_presence').on('value', snap => {
+    const pres = snap.val() || {};
+    let html = '';
+    Object.values(pres).forEach(p => {
+      if(p.photo) ALL_PHOTOS[p.name] = p.photo; // تحديث قاموس الصور
+      html += `<div class="p-avatar">${getAvatar(p.name, 44)}<div class="status online"></div><span>${p.name}</span></div>`;
+    });
+    // تحديث الأشرطة
+    if($('homePresence')) $('homePresence').innerHTML = html;
+    updateGamePresence(pres);
+  });
+}
+
+function updateGamePresence(presObj) {
+  if(!$('gamePresence') || !_room || !_room.turnOrder) return;
+  let html = '';
+  _room.turnOrder.forEach(p => {
+    if(isBot(p)) return;
+    const isOnline = !!presObj[p];
+    html += `<div class="p-avatar" style="opacity:${isOnline?1:0.4}">${getAvatar(p, 40)}<div class="status ${isOnline?'online':'offline'}"></div><span>${p}</span></div>`;
+  });
+  $('gamePresence').innerHTML = html;
+}
+
+// ══ قص ورفع الصور (خوارزمية الضغط للـ WEBP) ══
+function onFilePick(ev) {
+  const f = ev.target.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = e => {
+    _crImg = new Image();
+    _crImg.onload = () => {
+      _crBase = Math.max(280/_crImg.width, 280/_crImg.height);
+      _crOX = 0; _crOY = 0; $('crZoom').value = 1;
+      show('crOv', true); crDraw(); crDragInit();
+    };
+    _crImg.src = e.target.result;
+  };
+  rd.readAsDataURL(f); ev.target.value = '';
+}
+function crDraw() {
+  const cv=$('crCanvas'), ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,280,280);
+  const sc = _crBase * parseFloat($('crZoom').value);
+  
