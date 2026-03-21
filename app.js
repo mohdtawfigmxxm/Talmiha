@@ -524,7 +524,7 @@ function startGame() {
   DB.ref('tlm3_room').update({
     phase:'pick_hint', turnOrder:order, currentTurn:0,
     totalTurns:order.length*s.rounds, scores:scores,
-    currentQ:q, selectedHint:null, answers:{}, votes:{}
+    currentQ:q, selectedHint:null, answers:null, votes:null
   });
 }
 
@@ -533,13 +533,18 @@ function renderGame() {
   clearInterval(_timer);
   var sc=$('gameScore');
   if(sc&&_room.scores) sc.textContent=san(ME.name)+': '+(_room.scores[ME.name]||0)+' نقطة';
-  switch(_room.phase){
-    case 'pick_hint':    el.innerHTML=renderPickHint(); break;
-    case 'answering':    el.innerHTML=renderAnswering(); startTimer(); break;
-    case 'voting':       el.innerHTML=renderVoting(); break;
-    case 'round_result': el.innerHTML=renderRoundResult(); break;
-    case 'final':        el.innerHTML=renderFinal(); confetti(); break;
-    default: el.innerHTML='';
+  try {
+    switch(_room.phase){
+      case 'pick_hint':    el.innerHTML=renderPickHint(); break;
+      case 'answering':    el.innerHTML=renderAnswering(); startTimer(); break;
+      case 'voting':       el.innerHTML=renderVoting(); break;
+      case 'round_result': el.innerHTML=renderRoundResult(); break;
+      case 'final':        el.innerHTML=renderFinal(); confetti(); break;
+      default: el.innerHTML='<div style="padding:20px;text-align:center">في انتظار الأحداث...</div>';
+    }
+  } catch(e) {
+    el.innerHTML='<div style="padding:20px;color:red;font-weight:bold;text-align:center">حدث خطأ داخلي: <br>'+san(e.message)+'<br>يرجى إبلاغ مطور النظام.</div>';
+    console.error("renderGame error:", e);
   }
 }
 
@@ -577,7 +582,7 @@ function renderPickHint() {
   if(isBt&&ME.isAdmin){
     setTimeout(function(){
       if(_room&&_room.phase==='pick_hint'){
-        DB.ref('tlm3_room').update({phase:'answering', selectedHint:Math.floor(Math.random()*5), answers:{}, votes:{}, answerStart:Date.now()});
+        DB.ref('tlm3_room').update({phase:'answering', selectedHint:Math.floor(Math.random()*5), answers:null, votes:null, answerStart:Date.now()});
       }
     }, 700);
   }
@@ -600,7 +605,7 @@ function renderPickHint() {
 function selectHint(idx) {
   var order=_room.turnOrder||[], turn=_room.currentTurn||0, tp=order[turn%order.length];
   if(tp!==ME.name && !ME.isAdmin) return;
-  DB.ref('tlm3_room').update({phase:'answering', selectedHint:idx, answers:{}, votes:{}, answerStart:Date.now()});
+  DB.ref('tlm3_room').update({phase:'answering', selectedHint:idx, answers:null, votes:null, answerStart:Date.now()});
 }
 
 // ── ANSWERING ──
@@ -907,7 +912,7 @@ function showLeader() {
 function nextTurn() {
   var next=(_room.currentTurn||0)+1;
   var q=pickQ(_room.settings&&_room.settings.cats);
-  DB.ref('tlm3_room').update({phase:'pick_hint',currentTurn:next,currentQ:q,selectedHint:null,answers:{},votes:{},resOpts:null,roundPts:null});
+  DB.ref('tlm3_room').update({phase:'pick_hint',currentTurn:next,currentQ:q,selectedHint:null,answers:null,votes:null,resOpts:null,roundPts:null});
   showPage('pGame');
 }
 
