@@ -49,6 +49,19 @@ button{font-family:inherit;cursor:pointer;border:none;border-radius:14px;font-we
 .timer-fill{height:100%;background:linear-gradient(90deg,#16a34a,#a855f7);border-radius:4px;transition:width 1s linear}
 .timer-fill.warn{background:linear-gradient(90deg,var(--gold),var(--red))}
 .timer-lbl{text-align:center;font-family:Lexend,sans-serif;font-size:1.2rem;font-weight:900;color:var(--purp);margin-bottom:8px}
+/* Photo upload */
+.photo-upload-area{border:2px dashed var(--bd);border-radius:16px;padding:20px;text-align:center;cursor:pointer;transition:.2s;background:var(--s2)}
+.photo-upload-area:hover{border-color:var(--purp);background:#faf5ff}
+.photo-preview{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--purp);margin:0 auto 8px;display:block}
+/* Crop overlay */
+#cropOv{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+#cropWrap{position:relative;width:260px;height:260px;border-radius:50%;overflow:hidden;border:3px solid #fff;touch-action:none;cursor:grab;flex-shrink:0}
+#cropWrap:active{cursor:grabbing}
+#cropCanvas{position:absolute;top:0;left:0}
+.crop-ring{position:absolute;inset:0;border-radius:50%;border:3px solid rgba(255,255,255,.6);pointer-events:none;z-index:2}
+/* Q banks */
+.qbank-row{background:var(--sf);border:1px solid var(--bd);border-radius:13px;padding:10px 13px;margin-bottom:7px;display:flex;align-items:center;gap:8px}
+
 .ans-box{background:linear-gradient(135deg,#1a0a2e,#3b0764);border-radius:18px;padding:20px;margin-bottom:12px}
 .ans-lbl{font-size:.78rem;font-weight:700;color:rgba(255,255,255,.55);text-align:center;margin-bottom:12px}
 .ans-inp{width:100%;padding:14px;border:2px solid rgba(255,255,255,.2);border-radius:14px;background:rgba(255,255,255,.08);color:#fff;font-size:1rem;font-family:inherit;outline:none;text-align:center}
@@ -89,18 +102,32 @@ button{font-family:inherit;cursor:pointer;border:none;border-radius:14px;font-we
 <!-- ══ SCREENS ══ -->
 <div id="app">
 
-<!-- LOGIN -->
+<!-- LOGIN STEP 1: Name -->
 <div id="sLogin">
   <div style="text-align:center;padding:40px 0 30px">
     <div style="font-size:3rem;margin-bottom:8px">💡</div>
     <div style="font-family:Lexend,sans-serif;font-size:2rem;font-weight:900;color:var(--purp)">تلميحة</div>
     <div style="font-size:.82rem;color:var(--t3);margin-top:4px">لعبة التضليل والذكاء</div>
   </div>
-  <div class="card">
+  <div class="card" id="loginStep1">
     <div class="eyb">تسجيل الدخول</div>
     <div class="sht">اكتب اسمك <em>👋</em></div>
-    <input class="inp" id="nameInp" type="text" placeholder="اسمك هنا..." maxlength="20" autocomplete="off" style="margin-bottom:12px">
-    <button class="btn-purp" onclick="doLogin()">دخول →</button>
+    <input class="inp" id="nameInp" type="text" placeholder="اسمك هنا..." maxlength="20" autocomplete="off" style="margin-bottom:12px" onkeypress="if(event.key==='Enter')goToPhotoStep()">
+    <button class="btn-purp" onclick="goToPhotoStep()">التالي →</button>
+  </div>
+  <!-- STEP 2: Photo -->
+  <div class="card hidden" id="loginStep2">
+    <div class="eyb">الصورة الشخصية</div>
+    <div class="sht">أضف صورتك <em>📸</em></div>
+    <div class="photo-upload-area" onclick="$('photoFileInp').click()" id="photoArea">
+      <div id="photoPreviewWrap">
+        <div style="font-size:2rem;margin-bottom:8px">📷</div>
+        <div style="font-size:.84rem;font-weight:700;color:var(--t2)">اضغط لرفع صورة</div>
+        <div style="font-size:.72rem;color:var(--t3);margin-top:4px">اختياري — يمكنك التخطي</div>
+      </div>
+    </div>
+    <button class="btn-purp" onclick="doLogin()" style="margin-top:12px">دخول →</button>
+    <button class="btn-gray" onclick="doLogin()" style="margin-top:8px;font-size:.82rem">تخطي الصورة</button>
   </div>
 </div>
 
@@ -116,6 +143,7 @@ button{font-family:inherit;cursor:pointer;border:none;border-radius:14px;font-we
     <div id="homeStatus" style="font-size:.8rem;color:var(--t3);margin-bottom:14px;padding:8px;background:var(--s2);border-radius:10px;text-align:center"></div>
     <button class="btn-purp" onclick="navLobby()" style="margin-bottom:8px">🎮 غرفة اللعب</button>
     <button class="btn-gray" onclick="navStats()" style="margin-bottom:8px">📊 الإحصاءات</button>
+    <button class="btn-gray" onclick="navSettings()" style="margin-bottom:8px">⚙️ الإعدادات</button>
     <button class="btn-gray" onclick="doLogout()" style="font-size:.82rem">🚪 تسجيل خروج</button>
   </div>
 </div>
@@ -138,6 +166,15 @@ button{font-family:inherit;cursor:pointer;border:none;border-radius:14px;font-we
   <div id="gameContent"></div>
 </div>
 
+<!-- LEADERBOARD (separate page after round result) -->
+<div id="sLeader" class="hidden">
+  <header style="position:fixed;top:0;left:0;right:0;z-index:90;height:56px;background:var(--bg);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 16px">
+    <div class="tbt">🏆 الترتيب</div>
+    <div id="leaderRound" style="font-size:.78rem;font-weight:700;color:var(--purp)"></div>
+  </header>
+  <div id="leaderContent" style="padding-top:68px"></div>
+</div>
+
 <!-- STATS -->
 <div id="sStats" class="hidden">
   <header style="position:fixed;top:0;left:0;right:0;z-index:90;height:56px;background:var(--bg);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 16px">
@@ -147,7 +184,31 @@ button{font-family:inherit;cursor:pointer;border:none;border-radius:14px;font-we
   <div id="statsContent" style="padding-top:68px"></div>
 </div>
 
+<!-- SETTINGS (admin only) -->
+<div id="sSettings" class="hidden">
+  <header style="position:fixed;top:0;left:0;right:0;z-index:90;height:56px;background:var(--bg);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 16px">
+    <div class="tbt">⚙️ الإعدادات</div>
+    <button onclick="navHome()" style="background:var(--s2);color:var(--t2);padding:6px 12px;font-size:.78rem;border-radius:10px;border:1px solid var(--bd)">↩ رجوع</button>
+  </header>
+  <div style="padding-top:68px" id="settingsContent"></div>
+</div>
+
 </div><!-- #app -->
+
+<!-- File inputs (outside any hidden div) -->
+<input type="file" id="photoFileInp" accept="image/*" style="position:fixed;top:-999px;left:-999px;width:1px;height:1px" onchange="onPhotoSelected(event)">
+
+<!-- Crop Overlay -->
+<div id="cropOv" class="hidden">
+  <div style="color:#fff;font-family:Lexend,sans-serif;font-size:.95rem;font-weight:700;margin-bottom:14px">اضبط الصورة — اسحب للتحريك</div>
+  <div id="cropWrap"><canvas id="cropCanvas" width="260" height="260"></canvas><div class="crop-ring"></div></div>
+  <div style="margin-top:14px;color:rgba(255,255,255,.5);font-size:.72rem">🔍 تكبير</div>
+  <input type="range" id="cropZoom" min="1" max="4" step="0.02" value="1" style="width:240px;margin:8px 0;accent-color:#a855f7" oninput="cropDraw()">
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button onclick="cropCancel()" style="flex:1;padding:12px;background:rgba(255,255,255,.12);color:#fff;border:none;border-radius:14px;font-family:inherit;font-size:.9rem;font-weight:700">✕ إلغاء</button>
+    <button onclick="cropConfirm()" style="flex:1;padding:12px;background:#a855f7;color:#fff;border:none;border-radius:14px;font-family:inherit;font-size:.9rem;font-weight:700">✓ تأكيد</button>
+  </div>
+</div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -234,13 +295,15 @@ function confetti(){
   },i*15);
 }
 function avEl(name,sz=36){
-  const initials=name?name[0]:'?';
+  const ph=_PHOTOS&&_PHOTOS[name];
+  if(ph)return`<div class="pl-av" style="width:${sz}px;height:${sz}px;padding:0"><img src="${ph}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`;
   const colors=['#7e22ce','#1d4ed8','#dc2626','#16a34a','#d97706','#0369a1','#be185d','#15803d'];
   const ci=name?name.charCodeAt(0)%colors.length:0;
-  return `<div class="pl-av" style="width:${sz}px;height:${sz}px;font-size:${sz*.4}px;background:${colors[ci]}">${initials}</div>`;
+  return`<div class="pl-av" style="width:${sz}px;height:${sz}px;font-size:${sz*.4}px;background:${colors[ci]}">${name?name[0]:'?'}</div>`;
 }
 function allQ(){
-  const custom=lg('tlm_q')||[];
+  const banks=lg('tlm_banks')||[];
+  const custom=banks.flatMap(b=>b.questions||[]);
   return[...Q_BUILTIN,...custom];
 }
 function pickQ(cats){
@@ -254,21 +317,86 @@ function pickBotAns(q,usedAnswers){
   const unused=pool.filter(a=>!used.has(a.toLowerCase().replace(/\s/g,'')));
   if(unused.length)return unused[Math.floor(Math.random()*unused.length)];
   if(pool.length)return pool[Math.floor(Math.random()*pool.length)];
-  return 'لا أعرف';
+  return 'إجابة مجهولة';
 }
 
 // ══ APP STATE ══
-let ME = {name:'',isAdmin:false};
+let ME = {name:'',isAdmin:false,photo:''};
 let _room = null;
-let _roomOff = null; // unsubscribe function
+let _roomOff = null;
 let _timer = null;
+let _PHOTOS = {};
+let _crImg=null,_crBase=1,_crOX=0,_crOY=0,_crDrag=null;
 
 // ══ NAV ══
-const PAGES=['sLogin','sHome','sLobby','sGame','sStats'];
+const PAGES=['sLogin','sHome','sLobby','sGame','sLeader','sStats','sSettings'];
 function showPage(id){
   PAGES.forEach(p=>{const el=$(p);if(el)h(el)});
   const el=$(id);if(el)s(el);
 }
+
+// ══ PHOTO UPLOAD / CROP ══
+function goToPhotoStep(){
+  const inp=$('nameInp');
+  const name=(inp&&inp.value.trim())||'';
+  if(!name||name.length<2){toast('اكتب اسمك (حرفان على الأقل)','err');return;}
+  // Check if already has photo in Firebase (returning user within 24h)
+  DB.ref('tlm2_profiles/'+encodeURIComponent(name)).once('value').then(snap=>{
+    if(snap.exists()&&snap.val().photo){
+      // Has photo — use it and go directly
+      _PHOTOS[name]=snap.val().photo;
+      ME.photo=snap.val().photo;
+      // Update preview
+      $('loginStep1').classList.add('hidden');
+      $('loginStep2').classList.remove('hidden');
+      $('photoPreviewWrap').innerHTML=`<img src="${snap.val().photo}" class="photo-preview"><div style="font-size:.78rem;color:var(--grn);font-weight:700;margin-top:4px">✅ صورتك محفوظة</div><div style="font-size:.72rem;color:var(--t3);margin-top:2px">يمكنك تغييرها أو المتابعة</div>`;
+    }else{
+      $('loginStep1').classList.add('hidden');
+      $('loginStep2').classList.remove('hidden');
+    }
+  });
+}
+
+function onPhotoSelected(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    _crImg=new Image();
+    _crImg.onload=()=>{
+      const W=260,H=260;
+      _crBase=Math.max(W/_crImg.width,H/_crImg.height);
+      _crOX=0;_crOY=0;
+      $('cropZoom').value=1;
+      s($('cropOv'));
+      cropDraw();cropInitDrag();
+    };
+    _crImg.src=e.target.result;
+  };
+  rd.readAsDataURL(f);ev.target.value='';
+}
+function cropDraw(){
+  const cv=$('cropCanvas');if(!cv||!_crImg)return;
+  const ctx=cv.getContext('2d');const W=260,H=260;
+  cv.width=W;cv.height=H;ctx.clearRect(0,0,W,H);
+  const z=parseFloat($('cropZoom').value)||1,sc=_crBase*z;
+  const iw=_crImg.width*sc,ih=_crImg.height*sc;
+  ctx.drawImage(_crImg,(W-iw)/2+_crOX,(H-ih)/2+_crOY,iw,ih);
+}
+function cropInitDrag(){
+  const wp=$('cropWrap');if(!wp)return;
+  wp.onpointerdown=e=>{e.preventDefault();_crDrag={x:e.clientX-_crOX,y:e.clientY-_crOY};wp.setPointerCapture(e.pointerId);wp.onpointermove=ev=>{if(!_crDrag)return;_crOX=ev.clientX-_crDrag.x;_crOY=ev.clientY-_crDrag.y;cropDraw()};wp.onpointerup=()=>{_crDrag=null}};
+}
+function cropConfirm(){
+  const cv=$('cropCanvas');if(!cv)return;
+  const out=document.createElement('canvas');out.width=200;out.height=200;
+  out.getContext('2d').drawImage(cv,0,0,260,260,0,0,200,200);
+  const url=out.toDataURL('image/jpeg',.82);
+  ME.photo=url;
+  // Update preview
+  $('photoPreviewWrap').innerHTML=`<img src="${url}" class="photo-preview"><div style="font-size:.78rem;color:var(--grn);font-weight:700;margin-top:4px">✅ تم</div>`;
+  h($('cropOv'));
+}
+function cropCancel(){h($('cropOv'));}
 
 // ══ LOGIN ══
 function doLogin(){
@@ -278,18 +406,26 @@ function doLogin(){
   ME.name=name;
   ME.isAdmin=(name===ADMIN);
   ls('tlm_name',name);
-  const pk=encodeURIComponent(name);
-  // Register global presence
-  const pref=DB.ref('tlm2_presence/'+pk);
-  pref.set({name,ts:Date.now()});
-  pref.onDisconnect().remove();
-  // Listen online count
-  DB.ref('tlm2_presence').on('value',snap=>{
-    const el=$('homeStatus');
-    if(el)el.textContent=`${snap.numChildren()} متصل الآن 🟢`;
-  });
-  showHome();
-  listenRoom();
+  if(ME.photo)_PHOTOS[name]=ME.photo;
+  // Save profile with 24h expiry
+  const profile={name,ts:Date.now(),expires:Date.now()+24*60*60*1000};
+  if(ME.photo)profile.photo=ME.photo;
+  DB.ref('tlm2_profiles/'+encodeURIComponent(name)).set(profile);
+  _finishLogin(name);
+}
+
+function doLogout(){
+  clearInterval(_timer);
+  if(_roomOff){_roomOff();_roomOff=null;}
+  if(ME.name)DB.ref('tlm2_presence/'+encodeURIComponent(ME.name)).remove();
+  ME={name:'',isAdmin:false,photo:''};
+  ls('tlm_name',null);
+  _room=null;
+  showPage('sLogin');
+  h($('topBar'));
+  // Reset login steps
+  s($('loginStep1'));h($('loginStep2'));
+  const inp=$('nameInp');if(inp)inp.value='';
 }
 
 function syncRoomPresence(){
@@ -304,24 +440,11 @@ function showHome(){
   showPage('sHome');
   s($('topBar'));
   $('homeName').textContent=ME.name;
-  $('topUser').textContent=ME.name+(ME.isAdmin?' 👑':'');
+  const av=avEl(ME.name,28);
+  $('topUser').innerHTML=`${av}<span style="margin-right:6px;font-weight:700;color:var(--t2)">${san(ME.name)}</span>`;
 }
 
-function doLogout(){
-  clearInterval(_timer);
-  if(_roomOff){_roomOff();_roomOff=null;}
-  DB.ref('tlm2_presence/'+encodeURIComponent(ME.name)).remove();
-  ME={name:'',isAdmin:false};
-  ls('tlm_name',null);
-  _room=null;
-  showPage('sLogin');
-  const inp=$('nameInp');if(inp)inp.value='';
-}
-
-function navHome(){
-  clearInterval(_timer);
-  showPage('sHome');
-}
+function navLeader(){showPage('sLeader');}
 function navLobby(){showPage('sLobby');renderLobby();}
 function navStats(){
   showPage('sStats');
@@ -334,12 +457,142 @@ function navStats(){
     <div class="sc-row${i===0?' top':''}">
       <span style="font-size:1.1rem;min-width:26px">${medals[i]||''}</span>
       ${avEl(n,34)}
-      <div style="flex:1">
-        <div style="font-size:.9rem;font-weight:700">${san(n)}</div>
-        <div style="font-size:.66rem;color:var(--t3)">${st[n].games||0} لعبة · ${st[n].wins||0} فوز</div>
-      </div>
+      <div style="flex:1"><div style="font-size:.9rem;font-weight:700">${san(n)}</div>
+      <div style="font-size:.66rem;color:var(--t3)">${st[n].games||0} لعبة · ${st[n].wins||0} فوز</div></div>
       <div class="sc-pts">${st[n].pts||0}</div>
     </div>`).join('')+'</div>';
+}
+function navSettings(){
+  if(!ME.isAdmin){toast('الإعدادات للأدمن فقط','err');return;}
+  showPage('sSettings');
+  renderSettings();
+}
+
+function doLogout(){
+  clearInterval(_timer);
+  if(_roomOff){_roomOff();_roomOff=null;}
+  if(ME.name)DB.ref('tlm2_presence/'+encodeURIComponent(ME.name)).remove();
+  ME={name:'',isAdmin:false,photo:''};
+  ls('tlm_name',null);
+  _room=null;
+  showPage('sLogin');
+  h($('topBar'));
+  s($('loginStep1'));h($('loginStep2'));
+  const inp=$('nameInp');if(inp)inp.value='';
+}
+
+function navHome(){
+  clearInterval(_timer);
+  showPage('sHome');
+}
+function navLobby(){showPage('sLobby');renderLobby();}
+
+// ══ SETTINGS ══
+function renderSettings(){
+  const el=$('settingsContent');if(!el)return;
+  const banks=lg('tlm_banks')||[];
+  const qTemplate=`[
+  {
+    "term": "اسم المصطلح",
+    "cat": "معلومات عامة",
+    "hints": [
+      "معلومة صعبة جداً",
+      "معلومة صعبة",
+      "معلومة متوسطة",
+      "معلومة متوسطة",
+      "معلومة أسهل نسبياً"
+    ],
+    "botAnswers": ["إجابة بديلة 1","إجابة بديلة 2","إجابة بديلة 3","إجابة بديلة 4"]
+  }
+]`;
+  const banksHtml=banks.length
+    ?banks.map((b,i)=>`<div class="qbank-row">
+        <div style="flex:1"><div style="font-size:.88rem;font-weight:700">${san(b.name||('بنك '+(i+1)))}</div>
+        <div style="font-size:.68rem;color:var(--t3);margin-top:2px">${(b.questions||[]).length} سؤال · ${san(b.cat||'متنوعة')}</div></div>
+        <button onclick="deleteBank(${i})" style="background:#fee2e2;color:#b91c1c;padding:5px 12px;font-size:.74rem;border-radius:10px;border:none;cursor:pointer;font-family:inherit">🗑️ حذف</button>
+      </div>`).join('')
+    :`<div style="font-size:.82rem;color:var(--t3);text-align:center;padding:12px">لا توجد بنوك مستوردة</div>`;
+
+  el.innerHTML=`
+    <div class="card">
+      <div class="eyb">بنوك الأسئلة</div>
+      <div class="sht">استيراد أسئلة <em>📚</em></div>
+      ${banksHtml}
+      <div style="margin-top:12px">
+        <div style="font-size:.76rem;font-weight:700;color:var(--t2);margin-bottom:6px">اسم البنك</div>
+        <input class="inp" id="bankNameInp" placeholder="مثال: أسئلة رياضة" style="margin-bottom:10px">
+        <div style="font-size:.76rem;font-weight:700;color:var(--t2);margin-bottom:6px">كود JSON</div>
+        <textarea id="bankJsonInp" style="width:100%;padding:10px;border:1.5px solid var(--bd);border-radius:12px;font-family:inherit;font-size:.75rem;direction:ltr;text-align:left;min-height:100px;resize:vertical;outline:none" placeholder='[{"term":"...","cat":"...","hints":[...],"botAnswers":[...]}]'></textarea>
+        <div id="bankStatus" style="font-size:.76rem;margin:6px 0"></div>
+        <button class="btn-purp" onclick="importBank()" style="margin-top:4px">💾 استيراد البنك</button>
+      </div>
+      <button onclick="copyQTemplate()" style="width:100%;margin-top:10px;padding:11px;background:#f5f3ff;color:var(--purp);border:1.5px solid #c4b5fd;border-radius:14px;font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer">📋 نسخ قالب الأسئلة</button>
+    </div>
+    <div class="card">
+      <div class="eyb">الإحصاءات</div>
+      <div class="sht">بيانات اللاعبين <em>📊</em></div>
+      <button onclick="if(confirm('مسح كل الإحصاءات؟')){ls('tlm_stats',{});renderSettings();toast('تم','ok')}" class="btn-red btn-sm" style="width:100%">🗑️ مسح كل الإحصاءات</button>
+    </div>`;
+}
+
+function copyQTemplate(){
+  const t=`[
+  {
+    "term": "اسم المصطلح",
+    "cat": "معلومات عامة",
+    "hints": [
+      "معلومة صعبة جداً",
+      "معلومة صعبة",
+      "معلومة متوسطة",
+      "معلومة متوسطة",
+      "معلومة أسهل نسبياً"
+    ],
+    "botAnswers": ["إجابة بديلة 1","إجابة بديلة 2","إجابة بديلة 3","إجابة بديلة 4"]
+  },
+  {
+    "term": "مصطلح ثانٍ",
+    "cat": "جغرافيا",
+    "hints": ["معلومة 1","معلومة 2","معلومة 3","معلومة 4","معلومة 5"],
+    "botAnswers": ["بديل 1","بديل 2","بديل 3","بديل 4"]
+  }
+]`;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(()=>toast('تم نسخ القالب ✓','ok')).catch(()=>fbCopy(t));
+  }else fbCopy(t);
+}
+function fbCopy(text){
+  try{const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(ta);ta.focus();ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('تم النسخ ✓','ok');}catch(e){toast('فشل النسخ','err');}
+}
+function importBank(){
+  const nameInp=$('bankNameInp');const jsonInp=$('bankJsonInp');const status=$('bankStatus');
+  const name=(nameInp&&nameInp.value.trim())||'بنك جديد';
+  const raw=(jsonInp&&jsonInp.value.trim())||'';
+  if(!raw){if(status)status.innerHTML='<span style="color:#dc2626">⚠️ أدخل كود JSON</span>';return;}
+  let arr;
+  try{arr=JSON.parse(raw);}catch(e){if(status)status.innerHTML='<span style="color:#dc2626">❌ JSON غير صحيح</span>';return;}
+  if(!Array.isArray(arr)){arr=[arr];}
+  const valid=arr.filter(q=>q.term&&Array.isArray(q.hints)&&q.hints.length>=3&&q.cat);
+  if(!valid.length){if(status)status.innerHTML='<span style="color:#dc2626">❌ لا توجد أسئلة صحيحة</span>';return;}
+  // Pad hints to 5
+  valid.forEach(q=>{while(q.hints.length<5)q.hints.push(q.hints[q.hints.length-1]);q.hints=q.hints.slice(0,5);});
+  const banks=lg('tlm_banks')||[];
+  const bank={name,cat:valid[0].cat||'متنوعة',questions:valid,ts:Date.now()};
+  banks.push(bank);
+  ls('tlm_banks',banks);
+  // Sync to Firebase
+  DB.ref('tlm2_banks').set(banks);
+  if(jsonInp)jsonInp.value='';if(nameInp)nameInp.value='';
+  if(status)status.innerHTML=`<span style="color:#16a34a">✅ تم استيراد ${valid.length} سؤال</span>`;
+  renderSettings();
+  toast(`تم استيراد ${valid.length} سؤال ✓`,'ok');
+}
+function deleteBank(i){
+  if(!confirm('حذف هذا البنك؟'))return;
+  const banks=lg('tlm_banks')||[];
+  banks.splice(i,1);
+  ls('tlm_banks',banks);
+  DB.ref('tlm2_banks').set(banks);
+  renderSettings();toast('تم الحذف','ok');
 }
 
 // ══ ROOM LISTENER ══
@@ -669,31 +922,34 @@ function startTimerUI(){
   },500);
 }
 
+
 function doAnswer(){
   const inp=$('ansInp');if(!inp||!inp.value.trim())return;
   const raw=inp.value.trim();
   const q=_room.currentQ;
   const correct=raw.toLowerCase().replace(/\s/g,'')===(q.term||'').toLowerCase().replace(/\s/g,'');
   const pk=encodeURIComponent(ME.name);
+  DB.ref('tlm2_room/answers/'+pk).set({ans:raw,correct,name:ME.name});
   if(correct){
-    // Mark correct, ask for decoy
-    DB.ref('tlm2_room/answers/'+pk).set({ans:raw,correct:true,name:ME.name});
-    // Show decoy input
+    // Show decoy input — keep timer running
     const el=$('gameContent');
-    if(el)el.innerHTML=`<div style="padding-top:68px">
-      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:14px;padding:14px;text-align:center;margin-bottom:14px">
-        <div style="font-size:.9rem;font-weight:700;color:#16a34a">✅ إجابة صحيحة!</div>
-        <div style="font-size:.8rem;color:var(--t2);margin-top:4px">الآن اكتب إجابة تضليلية 🎭</div>
-      </div>
-      <div class="ans-box">
-        <div class="ans-lbl">اكتب إجابة مشابهة لتخدع الآخرين</div>
-        <input class="ans-inp" id="decoyInp" type="text" placeholder="إجابة تضليلية..." autocomplete="off" onkeypress="if(event.key==='Enter')doDecoy()">
-        <button class="btn-purp" onclick="doDecoy()" style="margin-top:10px">🎭 تأكيد</button>
-      </div>
-    </div>`;
+    if(el){
+      el.innerHTML=`<div style="padding-top:68px">
+        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:14px;padding:14px;text-align:center;margin-bottom:14px">
+          <div style="font-size:.9rem;font-weight:700;color:#16a34a">✅ إجابة صحيحة!</div>
+          <div style="font-size:.8rem;color:var(--t2);margin-top:4px">الآن اكتب إجابة تضليلية 🎭</div>
+        </div>
+        <div class="ans-box">
+          <div class="ans-lbl">اكتب إجابة مشابهة لتخدع الآخرين</div>
+          <input class="ans-inp" id="decoyInp" type="text" placeholder="إجابة تضليلية..." autocomplete="off" onkeypress="if(event.key==='Enter')doDecoy()">
+          <button class="btn-purp" onclick="doDecoy()" style="margin-top:10px">🎭 تأكيد</button>
+        </div>
+      </div>`;
+    }
+    // Timer continues — do NOT clearInterval
   }else{
-    DB.ref('tlm2_room/answers/'+pk).set({ans:raw,correct:false,name:ME.name});
     renderGame();
+    checkAllAnswered();
   }
 }
 
@@ -701,6 +957,27 @@ function doDecoy(){
   const inp=$('decoyInp');if(!inp||!inp.value.trim())return;
   DB.ref('tlm2_room/answers/'+encodeURIComponent(ME.name)+'/decoy').set(inp.value.trim());
   renderGame();
+  checkAllAnswered();
+}
+
+function checkAllAnswered(){
+  if(!ME.isAdmin||!_room)return;
+  const order=_room.turnOrder||[];
+  const turn=_room.currentTurn||0;
+  const turnPlayer=order[turn%order.length];
+  const humanVoters=order.filter(p=>!IS_BOT(p)&&p!==turnPlayer);
+  setTimeout(()=>{
+    DB.ref('tlm2_room/answers').once('value').then(snap=>{
+      const ans=snap.val()||{};
+      const done=humanVoters.filter(p=>{
+        const a=ans[encodeURIComponent(p)];
+        if(!a)return false;
+        if(a.correct)return !!a.decoy;
+        return true;
+      });
+      if(done.length>=humanVoters.length)doEndAnswering();
+    });
+  },400);
 }
 
 function doEndAnswering(){
@@ -854,44 +1131,68 @@ function renderRoundResult(){
   const rPts=_room.roundPts||{};
   const scores=_room.scores||{};
   const nc=_room.nc||0;
-  const sortedOrder=[...order].sort((a,b)=>(scores[b]||0)-(scores[a]||0));
 
   const optsHtml=(_room.resOpts||[]).map(opt=>{
     const cls=opt.real?'correct':opt.voters&&opt.voters.length?'decoy':'nobody';
-    const label=opt.real?'✅ الصحيحة':`🎭 ${san(opt.owner)}`;
+    const label=opt.real?'✅ الإجابة الصحيحة':`🎭 إجابة ${san(opt.owner)}`;
     const votersHtml=opt.voters&&opt.voters.length
-      ?opt.voters.map(v=>`<span style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:2px 8px;font-size:.68rem;font-weight:600">${san(v)}</span>`).join(' ')
-      :`<span style="font-size:.7rem;color:var(--t3)">لم يختره أحد</span>`;
+      ?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px">${opt.voters.map(v=>`<div style="display:flex;align-items:center;gap:4px;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:3px 8px">${avEl(v,18)}<span style="font-size:.7rem;font-weight:600">${san(v)}</span></div>`).join('')}</div>`
+      :`<div style="font-size:.7rem;color:var(--t3);margin-top:4px">لم يختره أحد</div>`;
     return`<div class="res-card ${cls}">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
         <span style="font-size:.9rem;font-weight:700">${san(opt.text)}</span>
-        <span style="font-size:.62rem;color:var(--t3)">${label}</span>
+        <span style="font-size:.66rem;color:var(--t3);text-align:left;margin-right:6px;flex-shrink:0">${label}</span>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">${votersHtml}</div>
+      ${votersHtml}
     </div>`;
   }).join('');
-
-  const ptsHtml=sortedOrder.map((p,i)=>`
-    <div class="sc-row${i===0?' top':''}">
-      <span style="min-width:24px;font-size:.9rem">${['🥇','🥈','🥉'][i]||''}</span>
-      ${avEl(p,32)}
-      <span style="flex:1;font-size:.86rem;font-weight:700">${san(p)}${IS_BOT(p)?'<span style="font-size:.6rem;color:var(--t3)"> 🤖</span>':''}</span>
-      <span style="font-size:.76rem;font-weight:700;color:${(rPts[p]||0)>0?'var(--grn)':'var(--t3)'}">+${rPts[p]||0}</span>
-      <span class="sc-pts">${scores[p]||0}</span>
-    </div>`).join('');
 
   const isLast=(turn+1)>=(_room.totalTurns||order.length);
   return`<div style="padding-top:68px">
     <div class="term-box" style="font-size:1.4rem">${san(q.term)}<div class="term-cat">${san(q.cat)}</div></div>
     <div style="text-align:center;font-size:.84rem;color:var(--t2);margin-bottom:14px">عرفها <strong>${nc}</strong> شخص — ${san(turnPlayer)} حصل على <strong style="color:var(--purp)">${rPts[turnPlayer]||0}</strong> نقطة</div>
     ${optsHtml}
-    <div style="font-size:.65rem;font-weight:700;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin:14px 0 8px">الترتيب</div>
-    ${ptsHtml}
-    ${ME.isAdmin?`<div style="display:flex;gap:8px;margin-top:14px">
-      ${!isLast?`<button class="btn-green" onclick="doNextTurn()" style="flex:1;padding:12px">▶️ التالي</button>`:''}
-      <button class="btn-purp" onclick="${isLast?'doFinish()':'doFinish()'}" style="${isLast?'flex:1;padding:12px':'padding:10px 14px;font-size:.78rem'}">${isLast?'🏆 النهاية':'⏩ إنهاء'}</button>
-    </div>`:`<div class="wait-box"><span class="spinner"></span> في انتظار المضيف...</div>`}
+    ${ME.isAdmin
+      ?`<div style="display:flex;gap:8px;margin-top:14px">
+          <button class="btn-green" onclick="showLeaderboard()" style="flex:1;padding:12px">📊 الترتيب</button>
+          ${!isLast
+            ?`<button class="btn-purp" onclick="doNextTurn()" style="flex:1;padding:12px">▶️ التالي</button>`
+            :`<button class="btn-purp" onclick="doFinish()" style="flex:1;padding:12px">🏆 النهاية</button>`}
+        </div>
+        <button class="btn-red" onclick="confirmExit()" style="width:100%;margin-top:8px;padding:9px;font-size:.8rem">🚪 إيقاف اللعبة</button>`
+      :`<div class="wait-box"><span class="spinner"></span> في انتظار المضيف...</div>`}
   </div>`;
+}
+
+function showLeaderboard(){
+  const scores=_room.scores||{};
+  const order=_room.turnOrder||[];
+  const turn=_room.currentTurn||0;
+  const sortedOrder=[...order].sort((a,b)=>(scores[b]||0)-(scores[a]||0));
+  const rPts=_room.roundPts||{};
+  const medals=['🥇','🥈','🥉'];
+  const isLast=(turn+1)>=(_room.totalTurns||order.length);
+  const ptsHtml=sortedOrder.map((p,i)=>`
+    <div class="sc-row${i===0?' top':''}">
+      <span style="min-width:28px;font-size:1rem">${medals[i]||''}</span>
+      ${avEl(p,36)}
+      <span style="flex:1;font-size:.88rem;font-weight:700">${san(p)}${IS_BOT(p)?'<span style="font-size:.6rem;color:var(--t3)"> 🤖</span>':''}</span>
+      <span style="font-size:.78rem;font-weight:700;color:${(rPts[p]||0)>0?'var(--grn)':'var(--t3)'};margin-left:6px">+${rPts[p]||0}</span>
+      <span class="sc-pts">${scores[p]||0}</span>
+    </div>`).join('');
+
+  const el=$('leaderContent');
+  const rnd=$('leaderRound');
+  if(rnd)rnd.textContent=`جولة ${turn+1} / ${_room.totalTurns||order.length}`;
+  if(el)el.innerHTML=`<div class="card">${ptsHtml}</div>
+    ${ME.isAdmin
+      ?`<div style="display:flex;gap:8px;padding:0 14px">
+          ${!isLast
+            ?`<button class="btn-green" onclick="doNextTurn()" style="flex:1;padding:13px">▶️ الدور التالي</button>`
+            :`<button class="btn-purp" onclick="doFinish()" style="flex:1;padding:13px">🏆 النهاية النهائية</button>`}
+        </div>`
+      :`<div style="text-align:center;font-size:.82rem;color:var(--t3);padding:10px">في انتظار المضيف...</div>`}`;
+  showPage('sLeader');
 }
 
 function doNextTurn(){
@@ -940,27 +1241,48 @@ function renderFinal(){
 
 // ══ BOOT ══
 window.addEventListener('load',()=>{
+  // Load question banks from Firebase
+  DB.ref('tlm2_banks').once('value').then(snap=>{
+    if(snap.exists()){const b=snap.val();if(Array.isArray(b))ls('tlm_banks',b);}
+  });
+
   const saved=localStorage.getItem('tlm_name');
   if(saved){
-    const nameInp=$('nameInp');if(nameInp)nameInp.value=saved;
-    // Auto-login
-    ME.name=saved;ME.isAdmin=(saved===ADMIN);
-    const pref=DB.ref('tlm2_presence/'+encodeURIComponent(saved));
-    pref.set({name:saved,ts:Date.now()});
-    pref.onDisconnect().remove();
-    DB.ref('tlm2_presence').on('value',snap=>{
-      const el=$('homeStatus');
-      if(el)el.textContent=`${snap.numChildren()} متصل الآن 🟢`;
+    // Check if profile still valid (within 24h)
+    DB.ref('tlm2_profiles/'+encodeURIComponent(saved)).once('value').then(snap=>{
+      if(snap.exists()&&snap.val().expires>Date.now()){
+        // Restore profile with photo
+        const profile=snap.val();
+        ME.name=saved;ME.isAdmin=(saved===ADMIN);
+        if(profile.photo){ME.photo=profile.photo;_PHOTOS[saved]=profile.photo;}
+        // Pre-fill name input
+        const nameInp=$('nameInp');if(nameInp)nameInp.value=saved;
+        _finishLogin(saved);
+      }else{
+        // Expired or missing — show login but pre-fill name
+        const nameInp=$('nameInp');if(nameInp)nameInp.value=saved;
+        showPage('sLogin');
+      }
     });
-    showHome();listenRoom();
   }else{
     showPage('sLogin');
   }
-  // Listen for questions from Firebase
-  DB.ref('tlm2_q').once('value').then(snap=>{
-    if(snap.exists()){const q=snap.val();if(Array.isArray(q))ls('tlm_q',q);}
-  });
 });
+
+function _finishLogin(name){
+  const pk=encodeURIComponent(name);
+  const pref=DB.ref('tlm2_presence/'+pk);
+  pref.set({name,photo:ME.photo||'',ts:Date.now()});
+  pref.onDisconnect().remove();
+  DB.ref('tlm2_presence').on('value',snap=>{
+    const el=$('homeStatus');
+    if(el)el.textContent=`${snap.numChildren()} متصل الآن 🟢`;
+    // Sync photos from presence
+    snap.forEach(ch=>{const d=ch.val();if(d&&d.name&&d.photo)_PHOTOS[d.name]=d.photo;});
+  });
+  showHome();
+  listenRoom();
+}
 </script>
 </body>
 </html>
