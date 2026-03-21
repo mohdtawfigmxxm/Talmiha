@@ -173,7 +173,7 @@ const BOT_NAMES = ['كليب','كلبون','كلباب','كلابا','أبوكل
 const IS_BOT = n => BOT_NAMES.includes(n);
 const TLM_CATS = ['معلومات عامة','دينية','جغرافيا','رياضة','رياضيات','فيزياء','دول','منوعة'];
 const TLM_TIMES = [{l:'30 ث',v:30},{l:'60 ث',v:60},{l:'دقيقتان',v:120}];
-const TLM_ROUNDS = [1,2,3,4,5];
+const TLM_ROUNDS = [1,2,3,4,5,6,7,8,10,15,20,30];
 
 // ══ BUILTIN QUESTIONS ══
 const Q_BUILTIN = [
@@ -278,8 +278,9 @@ function doLogin(){
   ME.name=name;
   ME.isAdmin=(name===ADMIN);
   ls('tlm_name',name);
-  // Register presence
-  const pref=DB.ref('tlm2_presence/'+encodeURIComponent(name));
+  const pk=encodeURIComponent(name);
+  // Register global presence
+  const pref=DB.ref('tlm2_presence/'+pk);
   pref.set({name,ts:Date.now()});
   pref.onDisconnect().remove();
   // Listen online count
@@ -289,6 +290,14 @@ function doLogin(){
   });
   showHome();
   listenRoom();
+}
+
+function syncRoomPresence(){
+  // Write my presence into the room so others can see it live
+  if(!ME.name||!_room)return;
+  const pk=encodeURIComponent(ME.name);
+  DB.ref('tlm2_room/presence/'+pk).set(true);
+  DB.ref('tlm2_room/presence/'+pk).onDisconnect().remove();
 }
 
 function showHome(){
@@ -515,6 +524,7 @@ function startGame(){
 function renderGame(){
   const el=$('gameContent');if(!el||!_room)return;
   clearInterval(_timer);
+  syncRoomPresence();
   // Update score in topbar
   const sc=$('gameTopScore');
   if(sc&&_room.scores)sc.textContent=`${san(ME.name)}: ${_room.scores[ME.name]||0} نقطة`;
@@ -528,23 +538,63 @@ function renderGame(){
   }
 }
 
+// Players live bar — shows who's online with opacity for absent
+function renderPlayersBar(){
+  const order=_room.turnOrder||Object.values(_room.players||{}).map(p=>p.name);
+  const humans=order.filter(p=>!IS_BOT(p));
+  const presence=_room.presence||{};
+  return`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;padding:8px;background:var(--s2);border-radius:12px">
+    ${humans.map(p=>{
+      const online=presence[encodeURIComponent(p)];
+      return`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;opacity:${online?1:0.35}">
+        ${avEl(p,28)}
+        <span style="font-size:.52rem;font-weight:700;color:var(--t2);max-width:38px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${san(p)}</span>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function confirmExit(){
+  if(!ME.isAdmin)return;
+  if(confirm('إيقاف اللعبة وحذف الغرفة؟')){
+    DB.ref('tlm2_room').remove();
+    navHome();
+  }
+}
+
 function renderPickHint(){
   const q=_room.currentQ;if(!q)return'';
   const turn=_room.currentTurn||0;
   const order=_room.turnOrder||[];
   const turnPlayer=order[turn%order.length];
   const isMe=turnPlayer===ME.name;
+  const isBot=IS_BOT(turnPlayer);
+  // If it's a bot's turn and I'm admin → auto-select immediately
+  if(isBot&&ME.isAdmin){
+    setTimeout(()=>{
+      if(_room&&_room.phase==='pick_hint'){
+        const idx=Math.floor(Math.random()*5);
+        DB.ref('tlm2_room').update({phase:'answering',selectedHint:idx,answers:{},votes:{},answerStart:Date.now()});
+      }
+    },800);
+  }
+  const playersBar=renderPlayersBar();
   return`<div style="padding-top:68px">
+    ${playersBar}
     <div class="turn-banner">
       ${avEl(turnPlayer,38)}
-      <div><div class="tb-name">${san(turnPlayer)}</div><div class="tb-sub">${isMe?'دورك':'يختار المعلومة...'}</div></div>
+      <div><div class="tb-name">${san(turnPlayer)}${isBot?' 🤖':''}</div><div class="tb-sub">${isMe?'دورك':'يختار المعلومة...'}</div></div>
       ${isMe?'<span class="my-turn-badge">دورك ✨</span>':''}
     </div>
-    <div class="term-box">${san(q.term)}<div class="term-cat">${san(q.cat)}</div></div>
-    ${isMe?`
-      <div style="font-size:.82rem;color:var(--t2);text-align:center;margin-bottom:12px;font-weight:600">اختر معلومة واحدة للعرض</div>
-      ${q.hints.map((h,i)=>`<div class="hint-card" onclick="selectHint(${i})"><div class="hint-num">${i+1}</div><div class="hint-txt">${san(h)}</div></div>`).join('')}
-    `:`<div class="wait-box"><span class="spinner"></span> ${san(turnPlayer)} يختار المعلومة...</div>`}
+    ${isMe
+      ?`<div class="term-box">${san(q.term)}<div class="term-cat">${san(q.cat)}</div></div>
+        <div style="font-size:.82rem;color:var(--t2);text-align:center;margin-bottom:12px;font-weight:600">اختر معلومة واحدة للعرض</div>
+        ${q.hints.map((h,i)=>`<div class="hint-card" onclick="selectHint(${i})"><div class="hint-num">${i+1}</div><div class="hint-txt">${san(h)}</div></div>`).join('')}`
+      :`<div style="background:var(--s2);border:1px solid var(--bd);border-radius:14px;padding:16px;text-align:center;margin-bottom:12px">
+          <div style="font-size:.78rem;font-weight:700;color:var(--t2)">الفئة: <strong>${san(q.cat)}</strong></div>
+        </div>
+        <div class="wait-box"><span class="spinner"></span> ${san(turnPlayer)} يختار المعلومة...</div>`}
+    ${ME.isAdmin?`<button class="btn-red" onclick="confirmExit()" style="width:100%;margin-top:14px;padding:10px;font-size:.8rem">🚪 إيقاف اللعبة</button>`:'<button class="btn-gray" onclick="navHome()" style="width:100%;margin-top:14px;font-size:.8rem">🚪 خروج (سيستمر اللاعبون)</button>'}
   </div>`;
 }
 
@@ -560,36 +610,44 @@ function renderAnswering(){
   const turnPlayer=order[turn%order.length];
   const isMyTurn=turnPlayer===ME.name;
   const myAns=_room.answers&&_room.answers[encodeURIComponent(ME.name)];
-  const answered=Object.keys(_room.answers||{}).length;
+  const answered=Object.keys(_room.answers||{}).filter(k=>{
+    const d=_room.answers[k];return d&&!IS_BOT(d.name);
+  }).length;
   const total=order.filter(p=>!IS_BOT(p)&&p!==turnPlayer).length;
   const hint=q.hints[_room.selectedHint||0];
   const timeVal=_room.settings&&_room.settings.time?_room.settings.time:60;
+  const elapsed=_room.answerStart?Math.floor((Date.now()-_room.answerStart)/1000):0;
+  const left=Math.max(0,timeVal-elapsed);
+  const pct=(left/timeVal)*100;
+  const danger=left<=5;
+  const playersBar=renderPlayersBar();
   return`<div style="padding-top:68px">
+    ${playersBar}
     <div class="turn-banner">
       ${avEl(turnPlayer,38)}
       <div><div class="tb-name">${san(turnPlayer)}</div><div class="tb-sub">صاحب الدور</div></div>
+      <div style="font-family:Lexend,sans-serif;font-size:1.4rem;font-weight:900;color:${danger?'#dc2626':'#a855f7'};min-width:38px;text-align:center;transition:.3s" id="timerLbl">${left}</div>
     </div>
-    <div class="term-box" style="font-size:1.4rem">${san(q.term)}<div class="term-cat">${san(q.cat)}</div></div>
+    <div class="timer-bar"><div class="timer-fill${danger?' warn':''}" id="timerFill" style="width:${pct}%"></div></div>
     <div class="shown-hint"><div class="sh-lbl">التلميح</div><div class="sh-txt">${san(hint)}</div></div>
-    <div class="timer-lbl" id="timerLbl">${timeVal}</div>
-    <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
-    ${isMyTurn?`
-      <div class="wait-box">
-        <div style="font-size:1.5rem;margin-bottom:8px">⏳</div>
-        <div style="font-weight:700;color:var(--t2)">أنت صاحب الدور — انتظر إجابات اللاعبين</div>
-        <div style="font-size:.78rem;color:var(--t3);margin-top:6px">${answered}/${total} أجابوا</div>
-        ${ME.isAdmin?`<button class="btn-purp" onclick="doEndAnswering()" style="margin-top:12px;padding:10px">⏩ انتهى الوقت</button>`:''}
-      </div>`
-    :myAns?`
-      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:14px;padding:16px;text-align:center">
-        <div style="font-size:.9rem;font-weight:700;color:#16a34a">✅ تم تسجيل إجابتك</div>
-        <div style="font-size:.74rem;color:var(--t3);margin-top:4px">${answered}/${total} أجابوا</div>
-      </div>`
-    :`<div class="ans-box">
-        <div class="ans-lbl">ما هو المصطلح؟</div>
-        <input class="ans-inp" id="ansInp" type="text" placeholder="اكتب إجابتك..." autocomplete="off" onkeypress="if(event.key==='Enter')doAnswer()">
-        <button class="btn-purp" onclick="doAnswer()" style="margin-top:10px">✓ تأكيد</button>
-      </div>`}
+    ${isMyTurn
+      ?`<div class="wait-box">
+          <div style="font-size:1.4rem;margin-bottom:8px">⏳</div>
+          <div style="font-weight:700;color:var(--t2)">أنت صاحب الدور</div>
+          <div style="font-size:.78rem;color:var(--t3);margin-top:6px">${answered}/${total} أجابوا</div>
+          ${ME.isAdmin?`<button class="btn-purp" onclick="doEndAnswering()" style="margin-top:12px;padding:10px;width:100%">⏩ انتهى الوقت</button>`:''}
+        </div>`
+      :myAns
+        ?`<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:14px;padding:16px;text-align:center">
+            <div style="font-size:.9rem;font-weight:700;color:#16a34a">✅ تم تسجيل إجابتك</div>
+            <div style="font-size:.74rem;color:var(--t3);margin-top:4px">${answered}/${total} أجابوا</div>
+          </div>`
+        :`<div class="ans-box">
+            <div class="ans-lbl">ما هو المصطلح؟</div>
+            <input class="ans-inp" id="ansInp" type="text" placeholder="اكتب إجابتك..." autocomplete="off" onkeypress="if(event.key==='Enter')doAnswer()">
+            <button class="btn-purp" onclick="doAnswer()" style="margin-top:10px">✓ تأكيد</button>
+          </div>`}
+    ${ME.isAdmin?`<button class="btn-red" onclick="confirmExit()" style="width:100%;margin-top:14px;padding:10px;font-size:.8rem">🚪 إيقاف اللعبة</button>`:'<button class="btn-gray" onclick="navHome()" style="width:100%;margin-top:14px;font-size:.8rem">🚪 خروج</button>'}
   </div>`;
 }
 
@@ -603,9 +661,10 @@ function startTimerUI(){
     const lbl=$('timerLbl'),fill=$('timerFill');
     if(!lbl||!fill){clearInterval(_timer);return;}
     lbl.textContent=left;
+    lbl.style.color=left<=5?'#dc2626':'#a855f7';
     const pct=(left/total)*100;
     fill.style.width=pct+'%';
-    fill.className='timer-fill'+(left<=10?' warn':'');
+    fill.className='timer-fill'+(left<=5?' warn':'');
     if(left<=0){clearInterval(_timer);if(ME.isAdmin)doEndAnswering();}
   },500);
 }
@@ -647,20 +706,38 @@ function doDecoy(){
 function doEndAnswering(){
   clearInterval(_timer);
   if(!ME.isAdmin||!_room)return;
-  // Add bot answers
   const q=_room.currentQ;
   const turn=_room.currentTurn||0;
   const order=_room.turnOrder||[];
   const turnPlayer=order[turn%order.length];
   const existing=_room.answers||{};
-  const usedAns=Object.values(existing).map(a=>a.decoy||a.ans||'');
+  const usedAns=Object.values(existing).map(a=>a.decoy||a.ans||'').filter(Boolean);
   const updates={};
+
+  // 1. Add answers for bots that ARE in game
   order.filter(p=>IS_BOT(p)&&p!==turnPlayer).forEach(bot=>{
     const pk=encodeURIComponent(bot);
     if(existing[pk])return;
-    updates['tlm2_room/answers/'+pk]={ans:pickBotAns(q,usedAns),correct:false,name:bot,isBot:true};
-    usedAns.push(updates['tlm2_room/answers/'+pk].ans);
+    const ba=pickBotAns(q,usedAns);
+    updates['tlm2_room/answers/'+pk]={ans:ba,correct:false,name:bot,isBot:true};
+    usedAns.push(ba);
   });
+
+  // 2. If total unique answers < 6, add ghost-bot fillers from available bot names
+  const realAnswers=Object.values(existing).filter(a=>a.name!==turnPlayer);
+  const totalAfterBots=realAnswers.length+Object.keys(updates).length;
+  if(totalAfterBots<5){
+    const unusedBots=BOT_NAMES.filter(bn=>!order.includes(bn));
+    let fi=0;
+    while(Object.keys(updates).length+realAnswers.length<5&&fi<unusedBots.length){
+      const ghost=unusedBots[fi++];
+      const pk=encodeURIComponent(ghost);
+      const ba=pickBotAns(q,usedAns);
+      updates['tlm2_room/answers/'+pk]={ans:ba,correct:false,name:ghost,isBot:true,isGhost:true};
+      usedAns.push(ba);
+    }
+  }
+
   if(Object.keys(updates).length){
     DB.ref().update(updates).then(()=>DB.ref('tlm2_room').update({phase:'voting'}));
   }else{
@@ -677,7 +754,6 @@ function renderVoting(){
   const pk=encodeURIComponent(ME.name);
   const myVote=_room.votes&&_room.votes[pk]!=null;
   const answers=_room.answers||{};
-  // Build options
   const opts=[{text:q.term,real:true,owner:'__real__'}];
   Object.values(answers).forEach(d=>{
     if(!d.name||d.name===turnPlayer)return;
@@ -686,23 +762,27 @@ function renderVoting(){
       opts.push({text:show,real:false,owner:d.name});
   });
   const shuffled=shuf([...opts]);
-  const vCount=Object.keys(_room.votes||{}).length;
+  const vCount=Object.values(_room.votes||{}).filter(v=>!IS_BOT(v.voterName||'')).length;
   const vNeeded=order.filter(p=>p!==turnPlayer&&!IS_BOT(p)).length;
-
+  const playersBar=renderPlayersBar();
+  const optsJson=JSON.stringify(shuffled).replace(/</g,'\\u003c').replace(/'/g,'\\u0027');
   return`<div style="padding-top:68px">
+    ${playersBar}
     <div class="turn-banner">
       ${avEl(turnPlayer,38)}
       <div><div class="tb-name">${san(turnPlayer)}</div><div class="tb-sub">صاحب الدور</div></div>
     </div>
-    <div class="term-box" style="font-size:1.4rem">${san(q.term)}<div class="term-cat">${san(q.cat)}</div></div>
-    <div class="shown-hint"><div class="sh-lbl">التلميح</div><div class="sh-txt">${san(q.hints[_room.selectedHint||0])}</div></div>
+    <div class="shown-hint"><div class="sh-lbl">التلميح — ${san(q.cat)}</div><div class="sh-txt">${san(q.hints[_room.selectedHint||0])}</div></div>
     <div style="font-size:.82rem;color:var(--t2);text-align:center;margin-bottom:12px;font-weight:600">${isMyTurn?`${vCount}/${vNeeded} صوّتوا`:'اختر الإجابة الصحيحة'}</div>
     ${!isMyTurn&&!myVote
-      ?shuffled.map((opt,i)=>`<div class="vote-card" onclick="doVote(${i},${JSON.stringify(shuffled).replace(/'/g,"&#39;")})"><div style="font-size:.9rem;font-weight:700">${san(opt.text)}</div></div>`).join('')
+      ?shuffled.map((opt,i)=>`<div class="vote-card" onclick='doVote(${i},${optsJson})'><div style="font-size:.9rem;font-weight:700">${san(opt.text)}</div></div>`).join('')
       :!isMyTurn&&myVote
         ?`<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:14px;padding:14px;text-align:center"><div style="font-weight:700;color:#16a34a">✅ تم تسجيل صوتك</div><div style="font-size:.74rem;color:var(--t3);margin-top:4px">${vCount}/${vNeeded} صوّتوا</div></div>`
         :`<div class="wait-box"><span class="spinner"></span> اللاعبون يصوّتون...</div>`}
-    ${ME.isAdmin?`<button class="btn-purp" onclick="doReveal()" style="margin-top:12px;padding:10px">📊 اكشف النتائج</button>`:''}
+    ${ME.isAdmin
+      ?`<button class="btn-purp" onclick="doReveal()" style="margin-top:12px;padding:10px;width:100%">📊 اكشف النتائج</button>
+         <button class="btn-red" onclick="confirmExit()" style="width:100%;margin-top:8px;padding:9px;font-size:.8rem">🚪 إيقاف اللعبة</button>`
+      :`<button class="btn-gray" onclick="navHome()" style="width:100%;margin-top:12px;font-size:.8rem">🚪 خروج</button>`}
   </div>`;
 }
 
