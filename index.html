@@ -503,6 +503,16 @@ function navHome() {
   renderRoomStatus();
 }
 
+// الدالة التي كانت مفقودة وتسببت في توقف الشاشة
+function navLobby() {
+  renderLobby();
+}
+
+// دالة مؤقتة لزر الإعدادات حتى لا يسبب خطأ إذا ضغطت عليه
+function navSettings() {
+  alert('إعدادات الأسئلة المخصصة سيتم برمجتها في الخطوة القادمة!');
+}
+
 function selTag(el) {
   el.parentElement.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
