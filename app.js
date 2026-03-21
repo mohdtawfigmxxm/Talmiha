@@ -183,21 +183,10 @@ function crCancel() { hn($('crOv')); }
 function goStep1() { sh($('lstep1')); hn($('lstep2')); }
 
 function goStep2() {
-  const nameEl=$('nameInp');
-  const name=(nameEl&&nameEl.value.trim())||'';
+  var nameEl=$('nameInp');
+  var name=(nameEl&&nameEl.value.trim())||'';
   if(!name||name.length<2){ toast('اكتب اسمك (حرفان على الأقل)','err'); return; }
-  // Show step 2 immediately
   sh($('lstep2')); hn($('lstep1'));
-  // Then check Firebase in background for returning user
-  DB.ref('tlm3_profiles/'+encName(name)).once('value').then(function(snap) {
-    if(snap.exists()) {
-      const p=snap.val();
-      const pExp = p.photoExpires || p.expires || 0;
-      if(pExp > Date.now() && p.photo){ ME.photo=p.photo; PHOTOS[name]=p.photo;
-        $('photoPreview').innerHTML='<img src="'+p.photo+'" class="photo-prev"><div style="font-size:.78rem;color:var(--grn);font-weight:700;margin-top:4px">✅ صورتك محفوظة — يمكنك تغييرها</div>';
-      }
-    }
-  });
 }
 
 function doLogin() {
@@ -367,7 +356,18 @@ function listenRoom() {
   if(_roomOff){ _roomOff(); _roomOff=null; }
   var ref=DB.ref('tlm3_room');
   var handler=ref.on('value',function(snap){
-    _room=snap.exists()?snap.val():null;
+    const data = snap.exists()?snap.val():null;
+    // Auto-cleanup: if room is older than 2 hours with no activity, delete it
+    if(data && ME.isAdmin){
+      const lastActivity = data.lastActivity||data.createdAt||0;
+      const idle = Date.now() - lastActivity;
+      if(lastActivity > 0 && idle > 2*60*60*1000){ // 2 hours idle
+        DB.ref('tlm3_room').remove();
+        _room = null;
+        return;
+      }
+    }
+    _room = data;
     var cur=_room?_room.phase:null;
     // update home status
     var hs=$('homeStatus');
@@ -489,6 +489,7 @@ function createRoom() {
   var roomRef = DB.ref('tlm3_room');
   roomRef.set({
     host:ME.name, phase:'lobby',
+    createdAt:Date.now(), lastActivity:Date.now(),
     settings:{cats:cats, time:time, rounds:rounds},
     players:{[pk]:{name:ME.name, joinedAt:Date.now()}}
   }).then(function(){
@@ -527,6 +528,7 @@ function startGame() {
   var s=_room.settings||{cats:[],time:60,rounds:2};
   var q=pickQ(s.cats);
   DB.ref('tlm3_room').update({
+    lastActivity: Date.now(),
     phase:'pick_hint', turnOrder:order, currentTurn:0,
     totalTurns:order.length*s.rounds, scores:scores,
     currentQ:q, selectedHint:null, answers:null, votes:null
@@ -917,7 +919,7 @@ function showLeader() {
 function nextTurn() {
   var next=(_room.currentTurn||0)+1;
   var q=pickQ(_room.settings&&_room.settings.cats);
-  DB.ref('tlm3_room').update({phase:'pick_hint',currentTurn:next,currentQ:q,selectedHint:null,answers:null,votes:null,resOpts:null,roundPts:null});
+  DB.ref('tlm3_room').update({lastActivity:Date.now(),phase:'pick_hint',currentTurn:next,currentQ:q,selectedHint:null,answers:null,votes:null,resOpts:null,roundPts:null});
   showPage('pGame');
 }
 
@@ -961,7 +963,7 @@ window.addEventListener('load', function(){
   if(saved){
     DB.ref('tlm3_profiles/'+encName(saved)).once('value').then(function(snap){
       var v=snap.val();
-      if(snap.exists() && v && v.expires > Date.now()){
+      if(false){
         var p=v;
         ME.name=saved; ME.isAdmin=(saved===ADMIN);
         var pExp = p.photoExpires || p.expires || 0;
