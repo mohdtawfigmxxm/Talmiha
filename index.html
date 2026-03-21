@@ -15,7 +15,7 @@
         /* CSS Variables & Theming */
         :root {
             --bg-color: #0f172a;
-            --glass-bg: rgba(30, 41, 59, 0.6);
+            --glass-bg: rgba(30, 41, 59, 0.7);
             --glass-border: rgba(255, 255, 255, 0.1);
             --primary: #8b5cf6;
             --primary-hover: #7c3aed;
@@ -26,12 +26,7 @@
             --warning: #f59e0b;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Readex Pro', sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Readex Pro', sans-serif; }
 
         body {
             background: radial-gradient(circle at top right, #1e1b4b, var(--bg-color), #020617);
@@ -57,63 +52,53 @@
             text-align: center;
         }
 
-        /* Typography */
         h1 { font-size: 2.5rem; margin-bottom: 0.5rem; background: linear-gradient(to left, #c4b5fd, #8b5cf6); -webkit-background-clip: text; color: transparent; }
         h2 { font-size: 1.5rem; margin-bottom: 1.5rem; font-weight: 600; }
         p { color: var(--text-muted); margin-bottom: 1rem; }
 
-        /* Form Elements */
-        input {
-            width: 100%;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            color: var(--text-main);
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s;
+        input[type="text"] {
+            width: 100%; padding: 1rem; margin-bottom: 1rem;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);
+            border-radius: 12px; color: var(--text-main); font-size: 1rem; outline: none; transition: all 0.3s;
         }
-        input:focus { border-color: var(--primary); background: rgba(255, 255, 255, 0.1); }
+        input[type="text"]:focus { border-color: var(--primary); background: rgba(255, 255, 255, 0.1); }
         
         button {
-            width: 100%;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            width: 100%; padding: 1rem; margin-bottom: 0.5rem; background: var(--primary);
+            color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 600;
+            cursor: pointer; transition: all 0.3s ease;
         }
         button:hover { background: var(--primary-hover); transform: translateY(-2px); }
         button:disabled { background: var(--text-muted); cursor: not-allowed; transform: none; }
         button.secondary { background: transparent; border: 1px solid var(--primary); color: var(--text-main); }
         button.secondary:hover { background: rgba(139, 92, 246, 0.1); }
         button.danger { background: var(--danger); }
+        button.small { width: auto; padding: 0.5rem 1rem; font-size: 0.9rem; margin: 0; }
 
-        /* Utilities */
+        /* File Upload Styling */
+        input[type="file"] { display: none; }
+        .file-upload-label {
+            display: block; padding: 1rem; background: rgba(255,255,255,0.05);
+            border: 1px dashed var(--primary); border-radius: 12px; cursor: pointer;
+            margin-bottom: 1.5rem; color: var(--text-muted); transition: 0.3s;
+        }
+        .file-upload-label:hover { background: rgba(139, 92, 246, 0.1); color: var(--text-main); }
+
         .hidden { display: none !important; }
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
         .mt-2 { margin-top: 1rem; }
         
-        /* Lobby Players */
-        .player-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-        .player-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 1rem 0.5rem;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
+        /* Dashboard & Rooms List */
+        .room-card {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border);
+            border-radius: 12px; padding: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;
         }
-        .avatar { font-size: 2rem; background: rgba(255, 255, 255, 0.1); border-radius: 50%; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; }
+
+        /* Avatar & Players */
+        .player-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .player-card { background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1rem 0.5rem; position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+        .avatar { width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.1); overflow: hidden; font-size: 2rem; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .kick-btn { position: absolute; top: 5px; right: 5px; background: var(--danger); color: white; width: 20px; height: 20px; border-radius: 50%; font-size: 0.8rem; display: flex; justify-content: center; align-items: center; cursor: pointer; border: none; padding: 0; }
 
         /* Game UI */
@@ -126,32 +111,51 @@
         .score-bar-container { width: 100%; height: 12px; background: rgba(255, 255, 255, 0.1); border-radius: 6px; overflow: hidden; margin-top: 0.5rem; }
         .score-bar { height: 100%; background: var(--accent); width: 0%; border-radius: 6px; transition: width 0.5s; }
         
-        /* Toast Notifications */
         #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 1rem 2rem; border-radius: 30px; font-weight: 600; opacity: 0; pointer-events: none; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
 
-    <div id="toast">تم النسخ بنجاح</div>
+    <div id="toast">إشعار</div>
 
     <div id="app">
-        <!-- Screen 1: Home -->
-        <div id="screen-home" class="glass-panel screen">
+        <!-- Screen 1: Login (Name & Picture) -->
+        <div id="screen-login" class="glass-panel screen">
             <h1>تلميحة</h1>
-            <p>لعبة الذكاء وسرعة البديهة</p>
+            <p>سجل دخولك للبدء</p>
             <input type="text" id="input-name" placeholder="أدخل اسمك" maxlength="15">
-            <button id="btn-create-room">إنشاء غرفة جديدة</button>
-            <div style="margin: 1rem 0; color: var(--text-muted);">أو</div>
-            <input type="text" id="input-room-code" placeholder="رقم الغرفة (4 أرقام)" maxlength="4">
-            <button id="btn-join-room" class="secondary">الانضمام لغرفة</button>
+            
+            <label class="file-upload-label" id="label-avatar">
+                📸 اضغط هنا لرفع صورتك الشخصية
+                <input type="file" id="input-avatar" accept="image/*">
+            </label>
+
+            <button id="btn-login">دخول</button>
         </div>
 
-        <!-- Screen 2: Lobby -->
+        <!-- Screen 2A: Admin Dashboard (Only for محمد) -->
+        <div id="screen-admin" class="glass-panel screen hidden">
+            <h2>لوحة الإدارة (محمد)</h2>
+            <button id="btn-create-room">إنشاء غرفة جديدة ➕</button>
+            <div style="margin-top: 2rem; text-align: right;">
+                <h3 style="margin-bottom: 1rem;">الغرف النشطة:</h3>
+                <div id="admin-rooms-list"></div>
+            </div>
+        </div>
+
+        <!-- Screen 2B: Player Dashboard (For others) -->
+        <div id="screen-rooms" class="glass-panel screen hidden">
+            <h2>الغرف المتاحة</h2>
+            <p>اختر غرفة للدخول والانضمام للعب</p>
+            <div id="player-rooms-list" style="margin-top: 1rem;"></div>
+        </div>
+
+        <!-- Screen 3: Lobby -->
         <div id="screen-lobby" class="glass-panel screen hidden">
             <h2>غرفة الانتظار</h2>
             <div class="flex-between" style="margin-bottom: 1rem; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
                 <span style="font-size: 1.5rem; font-weight: bold; letter-spacing: 2px;" id="display-room-code">0000</span>
-                <button id="btn-share-link" class="secondary" style="width: auto; margin: 0; padding: 0.5rem 1rem; font-size: 0.9rem;">مشاركة الرابط</button>
+                <button id="btn-leave-room" class="danger small">خروج</button>
             </div>
             <div id="players-container" class="player-list"></div>
             
@@ -159,15 +163,14 @@
                 <button id="btn-add-bot" class="secondary mt-2">إضافة بوت 🤖</button>
                 <button id="btn-start-game" class="mt-2">بدء اللعبة</button>
             </div>
-            <p id="waiting-msg" class="hidden mt-2">في انتظار المضيف لبدء اللعبة...</p>
+            <p id="waiting-msg" class="hidden mt-2">في انتظار محمد لبدء اللعبة...</p>
         </div>
 
-        <!-- Screen 3: Hints Phase -->
+        <!-- Screen 4: Hints Phase -->
         <div id="screen-hints" class="glass-panel screen hidden">
             <h2 id="role-title">دورك: كتابة التلميحات</h2>
             <div class="timer" id="timer-hints">30</div>
             
-            <!-- Hinter View -->
             <div id="view-hinter" class="hidden">
                 <p>الكلمة المطلوبة: <strong id="target-word" style="color: var(--warning); font-size: 1.2rem;"></strong></p>
                 <input type="text" id="hint-1" placeholder="التلميح الأول (كلمة واحدة)" maxlength="15">
@@ -176,18 +179,16 @@
                 <button id="btn-submit-hints">إرسال التلميحات</button>
             </div>
             
-            <!-- Guesser View -->
             <div id="view-waiting-hints" class="hidden">
                 <div class="avatar" style="margin: 0 auto 1rem;">✍️</div>
                 <p>اللاعب <strong id="current-hinter-name"></strong> يكتب التلميحات...</p>
             </div>
         </div>
 
-        <!-- Screen 4: Guessing Phase -->
+        <!-- Screen 5: Guessing Phase -->
         <div id="screen-guess" class="glass-panel screen hidden">
             <h2>خمن الكلمة!</h2>
             <div class="timer" id="timer-guess">30</div>
-            
             <div class="hints-display" id="display-hints"></div>
             
             <div id="view-guesser" class="hidden">
@@ -201,18 +202,16 @@
             </div>
         </div>
 
-        <!-- Screen 5: Results -->
+        <!-- Screen 6: Results -->
         <div id="screen-results" class="glass-panel screen hidden">
             <h2>النتائج</h2>
             <p>الكلمة كانت: <strong id="result-word" style="color: var(--warning); font-size: 1.2rem;"></strong></p>
-            
             <div id="leaderboard" style="margin-top: 2rem;"></div>
             
             <div id="admin-results-controls" class="hidden mt-2">
                 <button id="btn-next-round">الجولة التالية</button>
-                <button id="btn-reset-room" class="danger">إنهاء وحذف الغرفة</button>
             </div>
-            <p id="waiting-next-round" class="hidden mt-2">في انتظار المضيف...</p>
+            <p id="waiting-next-round" class="hidden mt-2">في انتظار الإدمن...</p>
         </div>
     </div>
 
@@ -221,7 +220,11 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getDatabase, ref, set, get, update, onValue, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-        // --- Firebase Configuration ---
+        // Check if opened via file:// (Prevents Firebase Modules from working)
+        if (window.location.protocol === 'file:') {
+            alert("تنبيه: أنت تفتح الملف بطريقة مباشرة (file://). لكي تعمل اللعبة، يجب فتحه عبر سيرفر محلي (Live Server) أو رفعه على استضافة.");
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyB9mj2PkgVpX6M_BW1cUMaymY2VWA4pwqg",
             authDomain: "dogs-padel.firebaseapp.com",
@@ -236,22 +239,23 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- Game Constants & Globals ---
+        // --- Globals & Constants ---
         const WORDS =["التفاحة", "السيارة", "البحر", "الجبل", "الشمس", "القمر", "الكتاب", "القلم", "الساعة", "الطائرة", "الأسد", "الحاسوب", "النظارة", "المفتاح"];
-        const AVATARS =['🦊','🐼','🦁','🐸','🐵','🦄','🐙','🦉','🦖','🐢'];
-        const PHASE_TIME = 30; // 30 seconds
+        const PHASE_TIME = 30;
 
         let myId = sessionStorage.getItem('playerId') || Math.random().toString(36).substring(2, 9);
         sessionStorage.setItem('playerId', myId);
         
+        // User Profile Object
+        let myProfile = { name: '', avatar: '', isAdmin: false };
         let roomId = null;
-        let isHost = false;
         let roomData = null;
         let timerInterval = null;
-        let botsProcessed = false;
         let currentPhaseEnd = 0;
+        let botsProcessed = false;
+        let globalRoomsListener = null;
+        let currentRoomListener = null;
 
-        // --- Utility Functions ---
         const DOM = {
             show: (id) => document.getElementById(id).classList.remove('hidden'),
             hide: (id) => document.getElementById(id).classList.add('hidden'),
@@ -277,103 +281,217 @@
             gsap.fromTo(`#${screenId}`, { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.7)" });
         };
 
-        // Check URL for shared room code
-        window.onload = () => {
-            const params = new URLSearchParams(window.location.search);
-            if (params.has('room')) DOM.setVal('input-room-code', params.get('room'));
-        };
-
-        // --- Core Game Functions ---
-        
-        const joinGame = async (code, name, isCreating = false) => {
-            if (!name) return showToast("الرجاء إدخال اسمك");
-            name = sanitize(name);
-
-            if (isCreating) {
-                code = Math.floor(1000 + Math.random() * 9000).toString();
-                isHost = true;
-                await set(ref(db, `rooms/${code}`), {
-                    state: 'lobby',
-                    admin: myId,
-                    players: { [myId]: { name, score: 0, isBot: false, avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)] } }
-                });
-            } else {
-                if (!code || code.length !== 4) return showToast("رقم الغرفة غير صحيح");
-                const snap = await get(ref(db, `rooms/${code}`));
-                if (!snap.exists()) return showToast("الغرفة غير موجودة");
-                
-                const players = snap.val().players || {};
-                if (Object.values(players).some(p => p.name === name && p.id !== myId)) return showToast("هذا الاسم مستخدم في الغرفة");
-                
-                isHost = snap.val().admin === myId;
-                await update(ref(db, `rooms/${code}/players/${myId}`), {
-                    name, score: players[myId]?.score || 0, isBot: false, avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)]
-                });
+        // Render Avatar (Checks if it's an emoji bot or base64 image)
+        const getAvatarHtml = (avatarString) => {
+            if (avatarString.startsWith('data:image')) {
+                return `<img src="${avatarString}" alt="avatar">`;
             }
+            return avatarString; // For Emojis (Bots)
+        };
 
+        // --- Image Compressor ---
+        const resizeImage = (file) => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_SIZE = 150; // Resize to 150px to save database space
+                        let width = img.width; let height = img.height;
+                        if (width > height) {
+                            if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+                        } else {
+                            if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+                        }
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Compress to base64 JPEG
+                    };
+                    img.src = e.target.result;
+                };
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        };
+
+        // Update file input label text
+        DOM.on('input-avatar', 'change', function() {
+            if (this.files && this.files[0]) {
+                DOM.text('label-avatar', '✅ تم اختيار الصورة: ' + this.files[0].name);
+                DOM.show('btn-login');
+            }
+        });
+
+        // --- Login Logic ---
+        DOM.on('btn-login', async () => {
+            const name = DOM.val('input-name');
+            const fileInput = document.getElementById('input-avatar');
+            
+            if (!name) return showToast("الرجاء إدخال اسمك");
+            if (!fileInput.files || !fileInput.files[0]) return showToast("الرجاء رفع صورتك الشخصية أولاً");
+
+            try {
+                DOM.text('btn-login', 'جاري الدخول...');
+                document.getElementById('btn-login').disabled = true;
+
+                const base64Avatar = await resizeImage(fileInput.files[0]);
+                myProfile.name = sanitize(name);
+                myProfile.avatar = base64Avatar;
+                myProfile.isAdmin = (myProfile.name === 'محمد'); // الصلاحية
+
+                if (myProfile.isAdmin) {
+                    switchScreen('screen-admin');
+                } else {
+                    switchScreen('screen-rooms');
+                }
+                listenToDashboards();
+
+            } catch (err) {
+                showToast("حدث خطأ في معالجة الصورة!");
+                document.getElementById('btn-login').disabled = false;
+                DOM.text('btn-login', 'دخول');
+            }
+        });
+
+        // --- Dashboards Logic ---
+        const listenToDashboards = () => {
+            globalRoomsListener = onValue(ref(db, 'rooms'), (snap) => {
+                const rooms = snap.val() || {};
+                renderDashboards(rooms);
+            });
+        };
+
+        const renderDashboards = (rooms) => {
+            let adminHtml = '';
+            let playerHtml = '';
+            
+            Object.entries(rooms).forEach(([code, room]) => {
+                if (myProfile.isAdmin) {
+                    adminHtml += `
+                        <div class="room-card">
+                            <span>غرفة: <strong>${code}</strong></span>
+                            <div>
+                                <button class="small" onclick="window.enterRoom('${code}')">دخول</button>
+                                <button class="small danger" onclick="window.deleteRoom('${code}')">حذف</button>
+                            </div>
+                        </div>`;
+                } else {
+                    if (room.state === 'lobby') { // اللاعب العادي يرى الغرف المتاحة للانتظار فقط
+                        playerHtml += `
+                            <div class="room-card">
+                                <span>غرفة الإدمن محمد: <strong>${code}</strong></span>
+                                <button class="small" onclick="window.enterRoom('${code}')">انضمام</button>
+                            </div>`;
+                    }
+                }
+            });
+
+            DOM.html('admin-rooms-list', adminHtml || '<p style="color:var(--text-muted)">لا توجد غرف حاليا</p>');
+            DOM.html('player-rooms-list', playerHtml || '<p style="color:var(--text-muted)">لا توجد غرف متاحة حاليا، في انتظار محمد لإنشاء غرفة.</p>');
+        };
+
+        // --- Room Operations ---
+        DOM.on('btn-create-room', async () => {
+            if (!myProfile.isAdmin) return;
+            const code = Math.floor(1000 + Math.random() * 9000).toString();
+            await set(ref(db, `rooms/${code}`), { state: 'lobby', admin: myId, players: {} });
+            window.enterRoom(code);
+        });
+
+        window.deleteRoom = async (code) => {
+            if (myProfile.isAdmin && confirm("متأكد من حذف الغرفة؟")) {
+                await remove(ref(db, `rooms/${code}`));
+            }
+        };
+
+        window.enterRoom = async (code) => {
             roomId = code;
-            setupPresence();
-            listenToRoom();
+            
+            // إلغاء مستمع القائمة الرئيسية
+            if(globalRoomsListener) offDashboardListener(); 
+
+            // إضافة اللاعب للغرفة
+            await update(ref(db, `rooms/${code}/players/${myId}`), {
+                name: myProfile.name,
+                avatar: myProfile.avatar,
+                score: 0,
+                isBot: false
+            });
+
+            // حذف اللاعب عند الخروج
+            onDisconnect(ref(db, `rooms/${code}/players/${myId}`)).remove();
+
             DOM.text('display-room-code', code);
-            switchScreen('screen-lobby');
+            listenToCurrentRoom();
         };
 
-        const setupPresence = () => {
-            const playerRef = ref(db, `rooms/${roomId}/players/${myId}`);
-            onDisconnect(playerRef).remove();
-        };
+        const offDashboardListener = () => { /* Logic to detach global if needed */ };
 
-        const listenToRoom = () => {
-            onValue(ref(db, `rooms/${roomId}`), (snap) => {
+        DOM.on('btn-leave-room', async () => {
+            if(roomId) {
+                await remove(ref(db, `rooms/${roomId}/players/${myId}`));
+                roomId = null;
+                switchScreen(myProfile.isAdmin ? 'screen-admin' : 'screen-rooms');
+                listenToDashboards(); // إعادة تشغيل الاستماع للشاشات
+            }
+        });
+
+        // --- Game Flow Logic ---
+        const listenToCurrentRoom = () => {
+            currentRoomListener = onValue(ref(db, `rooms/${roomId}`), (snap) => {
                 const data = snap.val();
                 if (!data) {
-                    showToast("تم إغلاق الغرفة");
-                    setTimeout(() => window.location.reload(), 2000);
+                    showToast("تم إغلاق الغرفة من قبل الإدمن");
+                    roomId = null;
+                    switchScreen(myProfile.isAdmin ? 'screen-admin' : 'screen-rooms');
+                    listenToDashboards();
                     return;
                 }
                 
-                // If I was kicked
                 if (!data.players || !data.players[myId]) {
-                    showToast("لقد تم طردك أو إزالتك من الغرفة");
-                    setTimeout(() => window.location.reload(), 2000);
+                    showToast("لقد خرجت أو تم طردك");
+                    roomId = null;
+                    switchScreen(myProfile.isAdmin ? 'screen-admin' : 'screen-rooms');
+                    listenToDashboards();
                     return;
                 }
 
                 roomData = data;
-                isHost = roomData.admin === myId;
                 updateUI();
             });
         };
 
         const updateUI = () => {
-            // Lobby Update
+            if (!roomData) return;
+
+            // 1. Lobby Update
             if (roomData.state === 'lobby') {
                 switchScreen('screen-lobby');
                 DOM.html('players-container', '');
                 
                 Object.entries(roomData.players).forEach(([pid, p]) => {
-                    const kickBtn = (isHost && pid !== myId) ? `<button class="kick-btn" onclick="kickPlayer('${pid}')">✕</button>` : '';
+                    const kickBtn = (myProfile.isAdmin && pid !== myId) ? `<button class="kick-btn" onclick="window.kickPlayer('${pid}')">✕</button>` : '';
                     const botBadge = p.isBot ? `<span style="font-size: 0.7rem; color: var(--accent);">بوت</span>` : '';
                     DOM.html('players-container', document.getElementById('players-container').innerHTML + `
                         <div class="player-card">
                             ${kickBtn}
-                            <div class="avatar">${p.avatar}</div>
-                            <span style="font-weight: 600;">${sanitize(p.name)}</span>
+                            <div class="avatar">${getAvatarHtml(p.avatar)}</div>
+                            <span style="font-weight: 600; font-size: 0.9rem;">${p.name}</span>
                             ${botBadge}
                         </div>
                     `);
                 });
 
-                if (isHost) {
-                    DOM.show('admin-controls');
-                    DOM.hide('waiting-msg');
+                if (myProfile.isAdmin) {
+                    DOM.show('admin-controls'); DOM.hide('waiting-msg');
                 } else {
-                    DOM.hide('admin-controls');
-                    DOM.show('waiting-msg');
+                    DOM.hide('admin-controls'); DOM.show('waiting-msg');
                 }
             }
 
-            // Hints Phase Update
+            // 2. Hints Phase Update
             if (roomData.state === 'hints') {
                 switchScreen('screen-hints');
                 currentPhaseEnd = roomData.round.endTime;
@@ -383,31 +501,231 @@
                 DOM.text('role-title', isMyTurn ? 'دورك: اكتب 3 تلميحات' : 'مرحلة التلميحات');
                 
                 if (isMyTurn) {
-                    DOM.show('view-hinter');
-                    DOM.hide('view-waiting-hints');
+                    DOM.show('view-hinter'); DOM.hide('view-waiting-hints');
                     DOM.text('target-word', roomData.round.word);
                     DOM.setVal('hint-1', ''); DOM.setVal('hint-2', ''); DOM.setVal('hint-3', '');
                 } else {
-                    DOM.hide('view-hinter');
-                    DOM.show('view-waiting-hints');
+                    DOM.hide('view-hinter'); DOM.show('view-waiting-hints');
                     DOM.text('current-hinter-name', roomData.players[roomData.round.hinter]?.name || 'لاعب');
                 }
             }
 
-            // Guessing Phase Update
+            // 3. Guessing Phase Update
             if (roomData.state === 'guessing') {
                 switchScreen('screen-guess');
                 currentPhaseEnd = roomData.round.endTime;
                 startTimer('timer-guess', handleGuessTimerEnd);
                 
-                DOM.html('display-hints', roomData.round.hints.map(h => `<div class="hint-box">${sanitize(h)}</div>`).join(''));
+                DOM.html('display-hints', roomData.round.hints.map(h => `<div class="hint-box">${h}</div>`).join(''));
                 
                 const isMyTurn = roomData.round.hinter === myId;
                 DOM.text('guess-feedback', '');
                 
                 if (isMyTurn) {
-                    DOM.hide('view-guesser');
-                    DOM.show('view-waiting-guesses');
+                    DOM.hide('view-guesser'); DOM.show('view-waiting-guesses');
                     DOM.text('hinter-word-reveal', roomData.round.word);
                 } else {
-                    DOM.show('view-guesser');
+                    DOM.show('view-guesser'); DOM.hide('view-waiting-guesses');
+                    DOM.setVal('input-guess', '');
+                    document.getElementById('btn-submit-guess').disabled = false;
+                    
+                    if (roomData.round.guesses && roomData.round.guesses[myId]) {
+                        document.getElementById('btn-submit-guess').disabled = true;
+                        DOM.text('guess-feedback', roomData.round.guesses[myId].correct ? 'تخمين صحيح! ✅' : 'تخمين خاطئ ❌');
+                    }
+                }
+
+                if (myProfile.isAdmin && !botsProcessed) {
+                    botsProcessed = true;
+                    processBots();
+                }
+            }
+
+            // 4. Results Phase Update
+            if (roomData.state === 'results') {
+                switchScreen('screen-results');
+                stopTimer();
+                DOM.text('result-word', roomData.round.word);
+                
+                const maxScore = Math.max(...Object.values(roomData.players).map(p => p.score), 100);
+                const sorted = Object.entries(roomData.players).sort((a, b) => b[1].score - a[1].score);
+                
+                let boardHtml = '';
+                sorted.forEach(([pid, p], index) => {
+                    const width = Math.max(5, (p.score / maxScore) * 100);
+                    boardHtml += `
+                        <div class="leaderboard-item">
+                            <div class="flex-between">
+                                <div style="display:flex; align-items:center; gap:0.5rem;">
+                                    <span>${index === 0 ? '👑' : ''}</span>
+                                    <div class="avatar" style="width:30px;height:30px;font-size:1rem;">${getAvatarHtml(p.avatar)}</div>
+                                    <span>${p.name}</span>
+                                </div>
+                                <span style="font-weight:bold; color:var(--accent)">${p.score} نقطة</span>
+                            </div>
+                            <div class="score-bar-container">
+                                <div class="score-bar" style="width: 0%" data-target-width="${width}%"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+                DOM.html('leaderboard', boardHtml);
+                
+                setTimeout(() => {
+                    document.querySelectorAll('.score-bar').forEach(bar => bar.style.width = bar.getAttribute('data-target-width'));
+                }, 100);
+
+                if (myProfile.isAdmin) {
+                    DOM.show('admin-results-controls'); DOM.hide('waiting-next-round');
+                } else {
+                    DOM.hide('admin-results-controls'); DOM.show('waiting-next-round');
+                }
+            }
+        };
+
+        // --- Timers & Game Logic ---
+        const startTimer = (elementId, onEndCallback) => {
+            stopTimer();
+            timerInterval = setInterval(() => {
+                const timeLeft = Math.max(0, Math.floor((currentPhaseEnd - Date.now()) / 1000));
+                DOM.text(elementId, timeLeft);
+                if (timeLeft <= 0) {
+                    stopTimer();
+                    if (myProfile.isAdmin && onEndCallback) onEndCallback();
+                }
+            }, 1000);
+        };
+        const stopTimer = () => clearInterval(timerInterval);
+
+        const handleHintTimerEnd = async () => {
+            if (!myProfile.isAdmin || roomData.state !== 'hints') return;
+            await update(ref(db, `rooms/${roomId}`), {
+                state: 'guessing',
+                'round/hints': roomData.round.hints ||['لا يوجد', 'تلميح', 'كتبه'],
+                'round/endTime': Date.now() + (PHASE_TIME * 1000)
+            });
+            botsProcessed = false;
+        };
+
+        const handleGuessTimerEnd = async () => {
+            if (!myProfile.isAdmin || roomData.state !== 'guessing') return;
+            calculateScoresAndEndRound();
+        };
+
+        const calculateScoresAndEndRound = async () => {
+            if (!myProfile.isAdmin) return;
+            let updates = { state: 'results' };
+            const guesses = roomData.round.guesses || {};
+            let correctGuesses = 0;
+
+            Object.entries(guesses).forEach(([pid, g]) => {
+                if (g.correct) {
+                    correctGuesses++;
+                    const bonus = Math.floor((g.timeLeft / PHASE_TIME) * 50);
+                    updates[`players/${pid}/score`] = (roomData.players[pid].score || 0) + 50 + bonus;
+                }
+            });
+
+            if (correctGuesses > 0) {
+                const hinterId = roomData.round.hinter;
+                updates[`players/${hinterId}/score`] = (roomData.players[hinterId].score || 0) + (correctGuesses * 20);
+            }
+
+            await update(ref(db, `rooms/${roomId}`), updates);
+        };
+
+        // --- Interaction Commands ---
+        DOM.on('btn-add-bot', async () => {
+            if (!myProfile.isAdmin) return;
+            const botId = 'bot_' + Math.random().toString(36).substring(2, 9);
+            const botsIcons =['🤖','👽','👾','👻','🤡'];
+            await set(ref(db, `rooms/${roomId}/players/${botId}`), {
+                name: 'بوت ' + Math.floor(Math.random()*100),
+                score: 0, isBot: true, avatar: botsIcons[Math.floor(Math.random()*botsIcons.length)]
+            });
+        });
+
+        window.kickPlayer = async (pid) => {
+            if (myProfile.isAdmin && confirm("متأكد من طرد اللاعب؟")) {
+                await remove(ref(db, `rooms/${roomId}/players/${pid}`));
+            }
+        };
+
+        DOM.on('btn-start-game', async () => {
+            if (!myProfile.isAdmin) return;
+            const players = Object.keys(roomData.players);
+            if (players.length < 2) return showToast("تحتاج للاعبين على الأقل");
+
+            const humans = players.filter(pid => !roomData.players[pid].isBot);
+            const hinter = humans.length > 0 ? humans[Math.floor(Math.random() * humans.length)] : players[0];
+            const word = WORDS[Math.floor(Math.random() * WORDS.length)];
+
+            await update(ref(db, `rooms/${roomId}`), {
+                state: 'hints',
+                round: { word, hinter, hints:[], guesses: {}, endTime: Date.now() + (PHASE_TIME * 1000) }
+            });
+        });
+
+        DOM.on('btn-submit-hints', async () => {
+            const h1 = DOM.val('hint-1'); const h2 = DOM.val('hint-2'); const h3 = DOM.val('hint-3');
+            if (!h1 || !h2 || !h3) return showToast("اكتب 3 تلميحات");
+            
+            await update(ref(db, `rooms/${roomId}/round`), {
+                hints:[sanitize(h1), sanitize(h2), sanitize(h3)],
+                endTime: Date.now() + (PHASE_TIME * 1000)
+            });
+            await update(ref(db, `rooms/${roomId}`), { state: 'guessing' });
+            botsProcessed = false;
+        });
+
+        DOM.on('btn-submit-guess', async () => {
+            const guess = DOM.val('input-guess');
+            if (!guess) return;
+            document.getElementById('btn-submit-guess').disabled = true;
+            
+            const isCorrect = guess === roomData.round.word;
+            const timeLeft = Math.max(0, Math.floor((currentPhaseEnd - Date.now()) / 1000));
+            
+            await update(ref(db, `rooms/${roomId}/round/guesses/${myId}`), {
+                guess: sanitize(guess), correct: isCorrect, timeLeft
+            });
+            
+            checkAllGuessed();
+        });
+
+        const checkAllGuessed = async () => {
+            if (!myProfile.isAdmin) return;
+            const snap = await get(ref(db, `rooms/${roomId}`));
+            const data = snap.val();
+            const totalGuessers = Object.keys(data.players).length - 1;
+            const totalGuesses = data.round.guesses ? Object.keys(data.round.guesses).length : 0;
+            
+            if (totalGuesses >= totalGuessers) calculateScoresAndEndRound();
+        };
+
+        const processBots = () => {
+            Object.entries(roomData.players).forEach(([pid, p]) => {
+                if (p.isBot && roomData.round.hinter !== pid) {
+                    setTimeout(async () => {
+                        const snap = await get(ref(db, `rooms/${roomId}/state`));
+                        if (snap.val() !== 'guessing') return;
+                        
+                        const isCorrect = Math.random() < 0.7;
+                        await update(ref(db, `rooms/${roomId}/round/guesses/${pid}`), {
+                            guess: isCorrect ? roomData.round.word : "تخمين عشوائي",
+                            correct: isCorrect,
+                            timeLeft: Math.max(0, Math.floor((currentPhaseEnd - Date.now()) / 1000))
+                        });
+                        checkAllGuessed();
+                    }, Math.floor(Math.random() * 4000) + 3000);
+                }
+            });
+        };
+
+        DOM.on('btn-next-round', async () => {
+            if (myProfile.isAdmin) await update(ref(db, `rooms/${roomId}`), { state: 'lobby', round: null });
+        });
+
+    </script>
+</body>
+</html>
